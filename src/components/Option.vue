@@ -1,8 +1,11 @@
 <template>
-  <label class="option"> 
-    <input type="radio" :value="item.id" :name="name"
+  <label class="option" v-bind:class="{ selected: selectedId === item.id }"> 
+    <input v-if="!static" type="radio" :value="item.id" :name="name"
       v-on:change="updateValue($event)"
     />
+    <div v-else class="option-label">
+      {{optionLabel}} {{item.id}}
+    </div>
     <div class="option-body">
       <div class="option-text">{{ item.text }}</div>
       <div v-if="item.link" ><a class="option-link" :href="item.link">{{item.link}}</a></div>
@@ -12,7 +15,7 @@
 
 <script>
 export default {
-  props: ['item', 'selectedOption', 'name'],
+  props: ['item', 'selectedOption', 'name', 'static', 'optionLabel', 'selectedId'],
   data () {
     return {
       selected: this.selectedOption
@@ -30,6 +33,20 @@ export default {
 .option {
   display: flex;
   height: 44px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.option.selected {
+  background: #D1FACA;
+}
+.option:hover {
+  background: #f2f2f2;
+}
+.option.selected:hover {
+  background: #D1FACA !important;
+}
+.option-label {
+  font-family: "HelveticaNeue-CondensedBold";
 }
 .option-body {
   margin-left: 10px;

@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import VueDoc from '@/components/VueDoc'
 import Main from '@/components/Main'
 import QuestionView from '@/components/QuestionView'
+import ReviewView from '@/components/ReviewView'
 
 Vue.use(Router)
 
@@ -22,6 +23,11 @@ export default new Router({
       path: '/projects/:projectId/questions',
       name: 'QuestionView',
       component: QuestionView
+    },
+    {
+      path: '/projects/:projectId/reviews',
+      name: 'ReviewView',
+      component: ReviewView
     }
   ]
 })

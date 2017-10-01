@@ -18,7 +18,7 @@
 <script>
 import Option from '@/components/Option'
 export default {
-  name: 'hello',
+  name: 'QuestionForm',
   components: {
     'survey-option': Option
   },
@@ -71,11 +71,7 @@ export default {
 }
 .option-wrapper {
   list-style: none;
-  padding: 4px 8px;
   border-radius: 4px;
-}
-.option-wrapper:hover {
-  background: #f2f2f2;
 }
 .buttons {
   display: flex;
