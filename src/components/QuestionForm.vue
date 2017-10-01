@@ -2,14 +2,8 @@
   <div class="question-form">
     <div class="question">{{ questionTitle }}</div>
     <ul class="options">
-      <li v-for="item in options" class="option">
-        <label class="option-inner"> 
-          <input type="radio" v-model="selectedOption" :value="item.id"/>
-          <div class="option-body">
-            <div class="option-text">{{ item.text }}</div>
-            <div v-if="item.link" ><a class="option-link" :href="item.link">{{item.link}}</a></div>
-          </div>
-        </label> 
+      <li v-for="item in options" class="option-wrapper">
+        <survey-option :item="item" v-model="selectedOption" name="survey-option"/>
       </li>
     </ul>
     <div class="reason-label">{{ reasonLabel }}</div>
@@ -22,8 +16,12 @@
 </template>
 
 <script>
+import Option from '@/components/Option'
 export default {
   name: 'hello',
+  components: {
+    'survey-option': Option
+  },
   data () {
     return {
       questionTitle: 'Which of the following two commits do you think is more valuable to the development of your project?',
@@ -71,25 +69,13 @@ export default {
   margin: 0;
   text-align: left;
 }
-.option {
+.option-wrapper {
   list-style: none;
   padding: 4px 8px;
   border-radius: 4px;
 }
-.option:hover {
+.option-wrapper:hover {
   background: #f2f2f2;
-}
-.option-inner {
-  display: flex;
-  height: 44px;
-}
-.option-body {
-  margin-left: 10px;
-}
-.option-link {
-  color: #888;
-  font-size: 14px;
-  padding: 4px 0;
 }
 .buttons {
   display: flex;
