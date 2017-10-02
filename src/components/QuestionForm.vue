@@ -42,6 +42,11 @@ export default {
         'selected': this.$data.selectedOption
       }
       console.log('save button clicked, selected option id =', payload)
+      this.$http.get('/someUrl').then(response => {
+        // success callback
+      }, response => {
+        // error callback
+      })
     },
     quitButtonClicked: function (event) {
       console.log('quit button clicked')
