@@ -17,6 +17,7 @@
 
 <script>
 import Option from '@/components/Option'
+import Config from '@/config'
 export default {
   name: 'QuestionForm',
   components: {
@@ -33,7 +34,8 @@ export default {
         {id: -1, text: 'Really not comparable!'},
         {id: -2, text: 'Problematic (e.g., one commit covers too many different changes).'}
       ],
-      selectedOption: 0
+      selectedOption: 0,
+      question: { id: 0 }
     }
   },
   methods: {
@@ -41,16 +43,22 @@ export default {
       let payload = {
         'selected': this.$data.selectedOption
       }
+      let url = Config.API_BASE + `/projects/${this.$route.params.projectId}/questions/${this.$data.question.id}`
+      // prepared, send data
       console.log('save button clicked, selected option id =', payload)
-      this.$http.get('/someUrl').then(response => {
-        // success callback
+      this.$http.post(url).then(response => {
+        this.reload(response)
       }, response => {
-        // error callback
+        alert('failed to save, try later.')
       })
     },
     quitButtonClicked: function (event) {
+      // @TODO logic to reset form.
       console.log('quit button clicked')
     }
+  },
+  reload: (resp) => {
+    console.log(resp)
   }
 }
 </script>
