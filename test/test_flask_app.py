@@ -6,7 +6,7 @@ import requests
 
 
 def test_next_question(address):
-    url = address + '/v1/projects/6f2295863057c2e7059b74a01c79ab707f8789c3/questions/next'
+    url = address + '/survey/v1/projects/6f2295863057c2e7059b74a01c79ab707f8789c3/questions/next'
     print('Next question: ' + url)
     headers = {'X-USR-TOKEN': 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'}
     r = requests.get(url, headers=headers)
@@ -17,7 +17,7 @@ def test_next_question(address):
 
 
 def test_submit_answer(address):
-    url = address + '/v1/projects/6f2295863057c2e7059b74a01c79ab707f8789c3/questions/' \
+    url = address + '/survey/v1/projects/6f2295863057c2e7059b74a01c79ab707f8789c3/questions/' \
                     'a248f3aaf9c99bed17ef9ca24d131cebeaa1906f'
     print('Submit answer: ' + url)
     headers = {'X-USR-TOKEN': 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'}
@@ -30,7 +30,7 @@ def test_submit_answer(address):
 
 
 def test_next_review(address):
-    url = address + '/v1/projects/6f2295863057c2e7059b74a01c79ab707f8789c3/reviews/next'
+    url = address + '/survey/v1/projects/6f2295863057c2e7059b74a01c79ab707f8789c3/reviews/next'
     print('Next review: ' + url)
     headers = {'X-USR-TOKEN': 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'}
     r = requests.get(url, headers=headers)
@@ -41,7 +41,7 @@ def test_next_review(address):
 
 
 def test_submit_review(address):
-    url = address + '/v1/projects/6f2295863057c2e7059b74a01c79ab707f8789c3/reviews/' \
+    url = address + '/survey/v1/projects/6f2295863057c2e7059b74a01c79ab707f8789c3/reviews/' \
                     'a248f3aaf9c99bed17ef9ca24d131cebeaa1906f'
     print('Submit review: ' + url)
     headers = {'X-USR-TOKEN': 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'}
@@ -58,7 +58,7 @@ def test_submit_review(address):
 
 
 def test_new_label(address):
-    url = address + '/v1/projects/6f2295863057c2e7059b74a01c79ab707f8789c3/labels/new'
+    url = address + '/survey/v1/projects/6f2295863057c2e7059b74a01c79ab707f8789c3/labels/new'
     print('New label: ' + url)
     headers = {'X-USR-TOKEN': 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'}
     payload = {'labelTitle': 'tiny'}
@@ -70,7 +70,7 @@ def test_new_label(address):
 
 
 def test_get_labels(address):
-    url = address + '/v1/projects/6f2295863057c2e7059b74a01c79ab707f8789c3/labels'
+    url = address + '/survey/v1/projects/6f2295863057c2e7059b74a01c79ab707f8789c3/labels'
     print('Get labels: ' + url)
     headers = {'X-USR-TOKEN': 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'}
     r = requests.get(url, headers=headers)
@@ -82,7 +82,7 @@ def test_get_labels(address):
 
 def main():
     parser = argparse.ArgumentParser(description='test app server')
-    parser.add_argument('-a', '--address', default='http://127.0.0.1:5000',
+    parser.add_argument('-a', '--address', default='http://api.persper.org',
                         help='RESTful web service address')
     args = parser.parse_args()
 
