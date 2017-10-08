@@ -7,6 +7,7 @@ import router from './router'
 
 Vue.config.productionTip = false
 Vue.use(VueResource)
+Vue.http.headers.common['X-USR-TOKEN'] = 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'
 
 /* eslint-disable no-new */
 new Vue({
@@ -17,7 +18,7 @@ new Vue({
   http: {
     root: '/',
     headers: {
-      '-X-USR-TOKEN': 'qwert1234'
+      '-X-USR-TOKEN': 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'
     }
   }
 })
