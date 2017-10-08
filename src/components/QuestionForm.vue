@@ -1,64 +1,71 @@
 <template>
   <div class="question-form">
-    <div class="question">{{ questionTitle }}</div>
-    <ul class="options">
-      <li v-for="item in options" class="option-wrapper">
-        <survey-option :item="item" v-model="selectedOption" name="survey-option"/>
-      </li>
-    </ul>
-    <div class="reason-label">{{ reasonLabel }}</div>
-    <textarea class="reason" placeholder="Write reason here."></textarea>
-    <div class="buttons">
-      <button class="quit-button" v-on:click="quitButtonClicked">Quit</button>
-      <button class="save-button" v-on:click="saveButtonClicked" :disabled="selectedOption === 0">Save & Continue</button>
+    <div v-if="question">
+      <div class="question">{{ questionTitle }}</div>
+      <ul class="options">
+        <li v-for="item in options" class="option-wrapper">
+          <survey-option :item="item" v-model="selectedOption" name="survey-option"></survey-option>
+        </li>
+      </ul>
+      <div class="reason-label">{{ reasonLabel }}</div>
+      <textarea class="reason" placeholder="Write reason here." v-model="comment"></textarea>
+      <div class="buttons">
+        <button class="quit-button" v-on:click="quitButtonClicked">Quit</button>
+        <button class="save-button" v-on:click="saveButtonClicked" :disabled="selectedOption === 0">Save & Continue</button>
+      </div>
+    </div>
+    <div v-else>
+      Loading...
     </div>
   </div>
 </template>
 
 <script>
 import Option from '@/components/Option'
-import Config from '@/config'
+// import Config from '@/config'
 export default {
   name: 'QuestionForm',
   components: {
     'survey-option': Option
   },
+  props: ['question'],
   data () {
     return {
       questionTitle: 'Which of the following two commits do you think is more valuable to the development of your project?',
       reasonLabel: 'Please explain the above answer (in English or Chinese). Think about both commit-specific reasons and commit-independent factors that may indicate your choice.',
-      msg: 'wireframe',
-      options: [
-        {id: 100, text: 'block hotot action', link: 'https://github.com/lyricat/Hotot/commit/50db207cc5'},
-        {id: 101, text: 'new dialog for extensions', link: 'https://github.com/lyricat/Hotot/commit/50db207cc5'},
-        {id: -1, text: 'Really not comparable!'},
-        {id: -2, text: 'Problematic (e.g., one commit covers too many different changes).'}
-      ],
       selectedOption: 0,
-      question: { id: 0 }
+      comment: ''
+    }
+  },
+  computed: {
+    options: function () {
+      if (this.question) {
+        let ret = this.question.commits.map(function (x) {
+          return {
+            id: x.id, text: x.title, link: x.url
+          }
+        })
+        ret = ret.concat([
+          {id: -1, text: 'Really not comparable!'},
+          {id: -2, text: 'Problematic (e.g., one commit covers too many different changes).'}
+        ])
+        return ret
+      }
+      return []
     }
   },
   methods: {
     saveButtonClicked: function (event) {
       let payload = {
-        'selected': this.$data.selectedOption
+        'selected': this.selectedOption,
+        'comment': this.comment
       }
-      let url = Config.API_BASE + `/projects/${this.$route.params.projectId}/questions/${this.$data.question.id}`
-      // prepared, send data
-      console.log('save button clicked, selected option id =', payload)
-      this.$http.post(url).then(response => {
-        this.reload(response)
-      }, response => {
-        alert('failed to save, try later.')
-      })
+      this.$emit('result', payload)
     },
     quitButtonClicked: function (event) {
       // @TODO logic to reset form.
       console.log('quit button clicked')
     }
-  },
-  reload: (resp) => {
-    console.log(resp)
   }
 }
 </script>
