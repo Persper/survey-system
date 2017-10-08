@@ -1,59 +1,64 @@
 <template>
-  <div class="review-form">
-    <div class="review">Fact</div>
-    <ul class="options">
-      <li v-for="item in options" class="option-wrapper">
-        <survey-option :item="item" v-model="selectedOption" name="survey-option" static="true" optionLabel="Commit" :selectedId="selectedId"/>
-      </li>
-    </ul>
-    <div class="reason">
-      <div class="choice">User chose {{selectedId}} </div>
-      <div v-if="reason" class="reason-content">{{reason}}</div>
-      <div v-else class="no-reason-hint">but user did articulate any reason.</div>
-    </div>
-    <hr/>
-    <div class="summary">
-      <div>
-        <span>A</span>
-        <select v-model="betterLabel1">
-          <option disabled selected value="0"> -- select -- </option>
-          <option value="1">tiny</option>
-          <option value="2">small</option>
-        </select>
-        <select v-model="betterLabel2">
-          <option disabled selected value="0"> -- select -- </option>
-          <option value="3">feature</option>
-          <option value="4">bug fix</option>
-          <option value="-1">custom</option>
-        </select>
-        <span v-if="newLabel1Enabled">(my label: 
-        <input v-model="newLabel1" class="new-label" placeholder="new label"  />
-        )</span>
+  <div v-if="review">
+    <div class="review-form">
+      <div class="review">Fact</div>
+      <ul class="options">
+        <li v-for="item in options" class="option-wrapper">
+          <survey-option :item="item" v-model="selectedOption" name="survey-option" static="true" optionLabel="Commit" :selectedId="selectedId"/>
+        </li>
+      </ul>
+      <div class="reason">
+        <div class="choice">User chose {{selectedId}} </div>
+        <div v-if="reason" class="reason-content">{{reason}}</div>
+        <div v-else class="no-reason-hint">but user did articulate any reason.</div>
       </div>
-      <div>is more valuable than</div>
-      <div>
-        <span>a</span>
-        <select v-model="worseLabel1">
-          <option disabled selected value="0"> -- select -- </option>
-          <option value="1">tiny</option>
-          <option value="2">small</option>
-        </select>
-        <select v-model="worseLabel2">
-          <option disabled selected value="0"> -- select -- </option>
-          <option value="3">feature</option>
-          <option value="4">bug fix</option>
-          <option value="-1">custom</option>
-        </select>
-        <span v-if="newLabel2Enabled" >(my label: 
-        <input v-model="newLabel2" class="new-label" placeholder="new label"/>
-        )</span>
+      <hr/>
+      <div class="summary">
+        <div>
+          <span>A</span>
+          <select v-model="betterLabel1">
+            <option disabled selected value="0"> -- select -- </option>
+            <option value="1">tiny</option>
+            <option value="2">small</option>
+          </select>
+          <select v-model="betterLabel2">
+            <option disabled selected value="0"> -- select -- </option>
+            <option value="3">feature</option>
+            <option value="4">bug fix</option>
+            <option value="-1">custom</option>
+          </select>
+          <span v-if="newLabel1Enabled">(my label: 
+          <input v-model="newLabel1" class="new-label" placeholder="new label"  />
+          )</span>
+        </div>
+        <div>is more valuable than</div>
+        <div>
+          <span>a</span>
+          <select v-model="worseLabel1">
+            <option disabled selected value="0"> -- select -- </option>
+            <option value="1">tiny</option>
+            <option value="2">small</option>
+          </select>
+          <select v-model="worseLabel2">
+            <option disabled selected value="0"> -- select -- </option>
+            <option value="3">feature</option>
+            <option value="4">bug fix</option>
+            <option value="-1">custom</option>
+          </select>
+          <span v-if="newLabel2Enabled" >(my label: 
+          <input v-model="newLabel2" class="new-label" placeholder="new label"/>
+          )</span>
+        </div>
+        If no such rule can be derived from the fact, leave a comment:
       </div>
-      If no such rule can be derived from the fact, leave a comment:
+      <div class="buttons">
+        <button class="quit-button" v-on:click="quitButtonClicked">Quit</button>
+        <button class="save-button" v-on:click="saveButtonClicked" :disabled="!validated">Save & Continue</button>
+      </div>
     </div>
-    <div class="buttons">
-      <button class="quit-button" v-on:click="quitButtonClicked">Quit</button>
-      <button class="save-button" v-on:click="saveButtonClicked" :disabled="!validated">Save & Continue</button>
-    </div>
+  </div>
+  <div v-else>
+    Loading ...
   </div>
 </template>
 
@@ -64,9 +69,10 @@ export default {
   components: {
     'survey-option': Option
   },
+  props: ['review'],
   computed: {
     selectedId: function () {
-      return this.$data.options.reduce(function (a, b) { return a.value > b.value ? a : b }).id
+      return this.review.selected
     },
     validated: function () {
       let labels = [this.$data.betterLabel1, this.$data.betterLabel2, this.$data.worseLabel1, this.$data.worseLabel2]
@@ -87,15 +93,26 @@ export default {
     },
     newLabel2Enabled: function () {
       return parseInt(this.$data.worseLabel2) === -1
+    },
+    options: function () {
+      if (this.review) {
+        let ret = this.review.commits.map(function (x) {
+          return {
+            id: x.id, text: x.title, link: x.url, displayedId: x.id.substring(0, 10)
+          }
+        })
+        ret = ret.concat([
+          {id: -1, text: 'Really not comparable!'},
+          {id: -2, text: 'Problematic (e.g., one commit covers too many different changes).'}
+        ])
+        return ret
+      }
+      return []
     }
   },
   data () {
     return {
       reason: '',
-      options: [
-        {id: 100, text: 'block hotot action', link: 'https://github.com/lyricat/Hotot/commit/50db207cc5', value: 1},
-        {id: 101, text: 'new dialog for extensions', link: 'https://github.com/lyricat/Hotot/commit/50db207cc5', value: 0}
-      ],
       selectedOption: 0,
       betterLabel1: 0,
       betterLabel2: 0,
@@ -108,12 +125,21 @@ export default {
   methods: {
     saveButtonClicked: function (event) {
       let payload = {
-        'labels': [
-          [this.$data.betterLabel1, this.$data.betterLabel2 === '-1' ? this.$data.newLabel1 : this.$data.betterLabel2],
-          [this.$data.worseLabel1, this.$data.worseLabel2 === '-1' ? this.$data.newLabel2 : this.$data.worseLabel2]
+        'commitLabels': [
+          {labelID: this.$data.betterLabel1},
+          {labelID: this.$data.betterLabel2},
+          {labelID: this.$data.worseLabel1},
+          {labelID: this.$data.worseLabel2}
         ]
       }
+      if (this.$data.betterLabel2) {
+        payload['commitLabels'][1].labelName = this.$data.newLabel1
+      }
+      if (this.$data.worseLabel2) {
+        payload['commitLabels'][3].labelName = this.$data.newLabel2
+      }
       console.log('save button clicked, selected option id =', payload)
+      this.$emit('result', payload)
     },
     quitButtonClicked: function (event) {
       console.log('quit button clicked')

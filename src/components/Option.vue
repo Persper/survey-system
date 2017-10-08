@@ -4,7 +4,10 @@
       v-on:change="updateValue($event)"
     />
     <div v-else class="option-label">
-      {{optionLabel}} {{item.id}}
+      <div v-if="item.id !== -1 && item.id !== -2">
+        {{optionLabel}}
+      </div>
+      <div class="option-displayed-id">{{item.displayedId}}</div>
     </div>
     <div class="option-body">
       <div class="option-text">{{ item.text }}</div>
@@ -47,6 +50,8 @@ export default {
 }
 .option-label {
   font-family: "HelveticaNeue-CondensedBold";
+  text-align: right;
+  width: 70px;
 }
 .option-body {
   margin-left: 10px;
@@ -55,5 +60,8 @@ export default {
   color: #888;
   font-size: 14px;
   padding: 4px 0;
+}
+.option-displayed-id {
+  font-size: 10px;
 }
 </style>
