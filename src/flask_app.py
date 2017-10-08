@@ -1,20 +1,22 @@
 from flask import abort
+from flask_cors import CORS
 from flask import Flask
 from flask import jsonify
 from flask import request
 from hashlib import sha1
 
 app = Flask(__name__)
+CORS(app)
 
 STATUS_REQ_JSON = {'status': 1, 'message': 'A JSON request is required!'}
 STATUS_BAD_REQUEST = {'status': 2, 'message': 'Bad request parameters!'}
 
-@app.route('/survey/v1')
+@app.route('/survey/v1', methods=['GET'])
 def version():
     return 'The Persper Survey System API v1'
 
 
-@app.route('/survey/v1/projects/<project_id>/questions/next', methods=["GET"])
+@app.route('/survey/v1/projects/<project_id>/questions/next', methods=['GET'])
 def next_question(project_id):
     if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
         abort(403)
@@ -39,7 +41,7 @@ def next_question(project_id):
     return jsonify({'status': 0, 'data': question})
 
 
-@app.route('/survey/v1/projects/<project_id>/questions/<question_id>', methods=["POST"])
+@app.route('/survey/v1/projects/<project_id>/questions/<question_id>', methods=['POST'])
 def submit_answer(project_id, question_id):
     if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
         abort(403)
@@ -54,7 +56,7 @@ def submit_answer(project_id, question_id):
     return jsonify({'status': 0})
 
 
-@app.route('/survey/v1/projects/<project_id>/reviews/next', methods=["GET"])
+@app.route('/survey/v1/projects/<project_id>/reviews/next', methods=['GET'])
 def next_review(project_id):
     if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
         abort(403)
@@ -80,7 +82,7 @@ def next_review(project_id):
     return jsonify({'status': 0, 'data': review})
 
 
-@app.route('/survey/v1/projects/<project_id>/reviews/<review_id>', methods=["POST"])
+@app.route('/survey/v1/projects/<project_id>/reviews/<review_id>', methods=['POST'])
 def submit_review(project_id, review_id):
     if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
         abort(403)
@@ -99,7 +101,7 @@ def submit_review(project_id, review_id):
     return jsonify({'status': 0})
 
 
-@app.route('/survey/v1/projects/<project_id>/labels/new', methods=["POST"])
+@app.route('/survey/v1/projects/<project_id>/labels/new', methods=['POST'])
 def new_label(project_id):
     if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
         abort(403)
@@ -120,7 +122,7 @@ def new_label(project_id):
     return jsonify({'status': 0, 'label': label})
 
 
-@app.route('/survey/v1/projects/<project_id>/labels', methods=["GET"])
+@app.route('/survey/v1/projects/<project_id>/labels', methods=['GET'])
 def labels(project_id):
     if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
         abort(403)
