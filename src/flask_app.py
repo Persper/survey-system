@@ -11,6 +11,7 @@ CORS(app)
 STATUS_REQ_JSON = {'status': 1, 'message': 'A JSON request is required!'}
 STATUS_BAD_REQUEST = {'status': 2, 'message': 'Bad request parameters!'}
 
+
 @app.route('/survey/v1', methods=['GET'])
 def version():
     return 'The Persper Survey System API v1'
@@ -38,7 +39,7 @@ def next_question(project_id):
     question['type'] = 'single'
     question['commits'] = [commit1, commit2]
 
-    return jsonify({'status': 0, 'data': question})
+    return jsonify({'status': 0, 'data': {'question': question}})
 
 
 @app.route('/survey/v1/projects/<project_id>/questions/<question_id>', methods=['POST'])
@@ -79,7 +80,7 @@ def next_review(project_id):
     review['selected'] = '915330ffc269eed821d652292993ff75b717a66b'
     review['commits'] = [commit1, commit2]
 
-    return jsonify({'status': 0, 'data': review})
+    return jsonify({'status': 0, 'data': {'review': review}})
 
 
 @app.route('/survey/v1/projects/<project_id>/reviews/<review_id>', methods=['POST'])
@@ -96,30 +97,17 @@ def submit_review(project_id, review_id):
     if not reason or not commit_labels:
         return jsonify(STATUS_BAD_REQUEST)
     for label in commit_labels:
-        if not label.get('commitID') or not label.get('labelID'):
+        commit_id = label.get('commitID')
+        if not commit_id:
             return jsonify(STATUS_BAD_REQUEST)
+        label_id = label.get('labelID')
+        if label_id:
+            continue
+        label_name = label.get('labelName')
+        if label_name:
+            continue
+        return jsonify(STATUS_BAD_REQUEST)
     return jsonify({'status': 0})
-
-
-@app.route('/survey/v1/projects/<project_id>/labels/new', methods=['POST'])
-def new_label(project_id):
-    if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
-        abort(403)
-    if not request.json:
-        return jsonify(STATUS_REQ_JSON)
-    if project_id != '6f2295863057c2e7059b74a01c79ab707f8789c3':
-        return jsonify(STATUS_BAD_REQUEST)
-
-    title = request.json.get('labelTitle')
-    if not title:
-        return jsonify(STATUS_BAD_REQUEST)
-    sha = sha1(title.encode('utf-8')).hexdigest()
-
-    label = dict()
-    label['id'] = sha
-    label['title'] = title
-
-    return jsonify({'status': 0, 'label': label})
 
 
 @app.route('/survey/v1/projects/<project_id>/labels', methods=['GET'])

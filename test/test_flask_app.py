@@ -48,7 +48,9 @@ def test_submit_review(address):
     payload = {'reason': 'Who knows.',
                'commitLabels': [
                    {'commitID': 'b35414f93aa5caaff115791d4040271047df25b3',
-                    'labelID': '506f25f62a7e5acfb4b5f866a570e78e4efd638a'}
+                    'labelID': '506f25f62a7e5acfb4b5f866a570e78e4efd638a'},
+                   {'commitID': 'b35414f93aa5caaff115791d4040271047df25b3',
+                    'labelName': '506f25f62a7e5acfb4b5f866a570e78e4efd638a'},
                ]}
     r = requests.post(url, headers=headers, json=payload)
     if r.ok:
@@ -90,7 +92,6 @@ def main():
     test_submit_answer(args.address)
     test_next_review(args.address)
     test_submit_review(args.address)
-    test_new_label(args.address)
     test_get_labels(args.address)
 
 
