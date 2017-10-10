@@ -74,6 +74,14 @@ export default {
     selectedId: function () {
       return this.review.selected
     },
+    notSelectedId: function () {
+      for (var i = 0; i < this.review.commits.length; i += 1) {
+        if (this.review.selectedId !== this.review.commits[i].id) {
+          return this.review.commits[i].id
+        }
+      }
+      return 0
+    },
     validated: function () {
       let labels = [this.$data.betterLabel1, this.$data.betterLabel2, this.$data.worseLabel1, this.$data.worseLabel2]
       let scalarValidated = labels.filter(function (x) {
@@ -126,16 +134,16 @@ export default {
     saveButtonClicked: function (event) {
       let payload = {
         'commitLabels': [
-          {labelID: this.$data.betterLabel1},
-          {labelID: this.$data.betterLabel2},
-          {labelID: this.$data.worseLabel1},
-          {labelID: this.$data.worseLabel2}
+          {labelID: this.$data.betterLabel1, commitID: this.selectedId},
+          {labelID: this.$data.betterLabel2, commitID: this.selectedId},
+          {labelID: this.$data.worseLabel1, commitID: this.notSelectedId},
+          {labelID: this.$data.worseLabel2, commitID: this.notSelectedId}
         ]
       }
-      if (this.$data.betterLabel2) {
+      if (this.$data.betterLabel2 === -1) {
         payload['commitLabels'][1].labelName = this.$data.newLabel1
       }
-      if (this.$data.worseLabel2) {
+      if (this.$data.worseLabel2 === -1) {
         payload['commitLabels'][3].labelName = this.$data.newLabel2
       }
       console.log('save button clicked, selected option id =', payload)
