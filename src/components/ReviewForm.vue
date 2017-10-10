@@ -49,7 +49,8 @@
           <input v-model="newLabel2" class="new-label" placeholder="new label"/>
           )</span>
         </div>
-        If no such rule can be derived from the fact, leave a comment:
+        <div>If no such rule can be derived from the fact, leave a comment:</div>
+        <textarea v-model="comment" class="comment-area"></textarea>
       </div>
       <div class="buttons">
         <button class="quit-button" v-on:click="quitButtonClicked">Quit</button>
@@ -94,7 +95,11 @@ export default {
       if (parseInt(this.$data.worseLabel2) === -1 && this.$data.newLabel2.trim().length === 0) {
         contentValidated = false
       }
-      return scalarValidated && contentValidated
+      let reasonValidated = true
+      if (this.$data.comment.trim().length === 0) {
+        reasonValidated = false
+      }
+      return reasonValidated || (scalarValidated && contentValidated)
     },
     newLabel1Enabled: function () {
       return parseInt(this.$data.betterLabel2) === -1
@@ -127,7 +132,8 @@ export default {
       worseLabel1: 0,
       worseLabel2: 0,
       newLabel1: '',
-      newLabel2: ''
+      newLabel2: '',
+      comment: ''
     }
   },
   methods: {
@@ -138,12 +144,13 @@ export default {
           {labelID: this.$data.betterLabel2, commitID: this.selectedId},
           {labelID: this.$data.worseLabel1, commitID: this.notSelectedId},
           {labelID: this.$data.worseLabel2, commitID: this.notSelectedId}
-        ]
+        ],
+        reason: this.$data.comment
       }
-      if (this.$data.betterLabel2 === -1) {
+      if (this.$data.betterLabel2 === '-1') {
         payload['commitLabels'][1].labelName = this.$data.newLabel1
       }
-      if (this.$data.worseLabel2 === -1) {
+      if (this.$data.worseLabel2 === '-1') {
         payload['commitLabels'][3].labelName = this.$data.newLabel2
       }
       console.log('save button clicked, selected option id =', payload)
@@ -187,6 +194,9 @@ export default {
 .option-wrapper {
   list-style: none;
   border-radius: 4px;
+}
+.comment-area {
+  width: 100%;
 }
 .buttons {
   display: flex;
