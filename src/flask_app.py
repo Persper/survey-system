@@ -94,7 +94,7 @@ def submit_review(project_id, review_id):
 
     reason = request.json.get('reason')
     commit_labels = request.json.get('commitLabels')
-    if not reason or not commit_labels:
+    if not reason and not commit_labels:
         return jsonify(STATUS_BAD_REQUEST)
     for label in commit_labels:
         commit_id = label.get('commitID')
