@@ -45,6 +45,16 @@ def add_project(name, url):
         print(e)
 
 
+def get_project(project_id):
+    if not _driver:
+        init_driver()
+    try:
+        return _driver.session().read_transaction(
+            query.get_project_node, project_id)
+    except Exception as e:
+        print(e)
+
+
 def add_developer(name, email):
     if not _driver:
         init_driver()
@@ -73,8 +83,12 @@ def add_comparison(commit1, commit2, email):
     if not _driver:
         init_driver()
     try:
+        if commit1 > commit2:
+            commit1, commit2 = commit2, commit1
+        cid = sha1((commit1 + commit2 + email).encode('utf-8')).hexdigest()
         _driver.session().write_transaction(query.create_comparison_node,
-                                            commit1, commit2, email)
+                                            cid, commit1, commit2, email)
+        return cid
     except Exception as e:
         print(e)
 
@@ -84,22 +98,23 @@ def next_comparison(email):
         init_driver()
     try:
         n = _driver.session().read_transaction(query.count_compared, email)
-        commit1, commit2 = _driver.session().read_transaction(
+        comparison, commit1, commit2 = _driver.session().read_transaction(
             query.next_comparison_node, email)
-        return n, commit1, commit2
+        return comparison, commit1, commit2, n
     except Exception as e:
         print(e)
 
 
-def add_reason(more_valuable_commit, less_valuable_commit, reason, email):
+def add_reason(*, comparison_id, valuable_commit, reason, email):
     if not _driver:
         init_driver()
     try:
         tx = _driver.session().begin_transaction()
-        query.create_comparison_relationship(
-            tx, more_valuable_commit, less_valuable_commit, reason, email)
-        query.delete_comparison_node(tx, more_valuable_commit,
-                                     less_valuable_commit, email)
+        c1, c2 = query.delete_comparison_node(tx, comparison_id)
+        if c2 == valuable_commit:
+            c1, c2 = c2, c1
+        assert c1 == valuable_commit
+        query.create_value_relationship(tx, c1, c2, reason, email)
         tx.commit()
     except Exception as e:
         print(e)
@@ -135,15 +150,15 @@ def main():
                title='new image for tweets which are retweeted by user',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
                project_id=project_id)
-    add_comparison('b35414f93aa5caaff115791d4040271047df25b3',
+    cid = add_comparison('b35414f93aa5caaff115791d4040271047df25b3',
                    '915330ffc269eed821d652292993ff75b717a66b',
                    'w@persper.org')
-    n, c1, c2 = next_comparison('w@persper.org')
-    print(n, c1['id'], c2['id'])
-    add_reason('915330ffc269eed821d652292993ff75b717a66b',
-               'b35414f93aa5caaff115791d4040271047df25b3',
-               '第二个 commit 是 disable a feature，第一个是优化体验。',
-               'w@persper.org')
+    comp, c1, c2, n = next_comparison('w@persper.org')
+    print(comp['id'], c1['id'], c2['id'], n)
+    add_reason(comparison_id=cid,
+               valuable_commit='b35414f93aa5caaff115791d4040271047df25b3',
+               reason='第二个 commit 是 disable a feature，第一个是优化体验。',
+               email='w@persper.org')
     add_commit(sha1_hex='b35414f93aa5caaff115791d4040271047df25b3',
                title='disable the position saving',
                author='Lyric Wai', email='5h3ll3x@gmail.com',

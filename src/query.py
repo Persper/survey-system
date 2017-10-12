@@ -7,6 +7,12 @@ def create_project_node(tx, project_id, name, url):
     return record['id'], record['url']
 
 
+def get_project_node(tx, project_id):
+    result = tx.run("MATCH (p:Project {id: $project_id}) RETURN p",
+                    project_id=project_id)
+    return result.single()
+
+
 def create_developer_email(tx, name, email):
     tx.run("MERGE (e:Email {email: $email}) "
            "MERGE (d:Developer {name: $name}) "
@@ -34,12 +40,12 @@ def link_commit_author(tx, commit_id, email):
            commit_id=commit_id, email=email)
 
 
-def create_comparison_node(tx, commit1, commit2, email):
-    if commit1 > commit2:
-        commit1, commit2 = commit2, commit1
+def create_comparison_node(tx, comparison_id, commit1, commit2, email):
     tx.run("MERGE (e:Email {email: $email}) "
-           "MERGE (e)-[:COMPARES]->(c:Comparison {commit1: $commit1, commit2: $commit2})",
-           commit1=commit1, commit2=commit2, email=email)
+           "MERGE (:Commit {id: $c1}) "
+           "MERGE (:Commit {id: $c2}) "
+           "MERGE (e)-[:COMPARES]->(c:Comparison {id: $cid, commit1: $c1, commit2: $c2})",
+           cid=comparison_id, c1=commit1, c2=commit2, email=email)
 
 
 def count_compared(tx, email):
@@ -50,22 +56,28 @@ def count_compared(tx, email):
 
 def next_comparison_node(tx, email):
     result = tx.run("MATCH (:Email {email: $email})-[:COMPARES]->(c:Comparison) "
-                    "WITH c ORDER BY c.commit1 LIMIT 1 "
+                    "WITH c ORDER BY c.id LIMIT 1 "
                     "MATCH (c1:Commit {id: c.commit1}), (c2:Commit {id: c.commit2}) "
-                    "RETURN c1, c2", email=email)
+                    "RETURN c, c1, c2",
+                    email=email)
+    record = result.single()
+    if record is None:
+        return None, None, None
+    return record['c'], record['c1'], record['c2']
+
+
+def delete_comparison_node(tx, comparison_id):
+    result = tx.run("MATCH (n:Comparison {id: $cid}) "
+                    "WITH n, n.commit1 AS c1, n.commit2 AS c2 "
+                    "DETACH DELETE n "
+                    "RETURN c1, c2",
+                    cid=comparison_id)
     record = result.single()
     return record['c1'], record['c2']
 
 
-def delete_comparison_node(tx, commit1, commit2, email):
-    if commit1 > commit2:
-        commit1, commit2 = commit2, commit1
-    tx.run("MATCH (:Email {email: $email})-[r:COMPARES]->(n:Comparison {commit1: $commit1, commit2: $commit2}) "
-           "DELETE r, n", email=email, commit1=commit1, commit2=commit2)
-
-
-def create_comparison_relationship(tx, more_valuable_commit,
-                                   less_valuable_commit, reason, email):
+def create_value_relationship(tx, more_valuable_commit,
+                              less_valuable_commit, reason, email):
     tx.run("MERGE (c1:Commit {id: $c1}) "
            "MERGE (c2:Commit {id: $c2}) "
            "MERGE (c1)-[r:OUTVALUES {email: $email}]->(c2) "
