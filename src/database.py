@@ -79,6 +79,18 @@ def add_comparison(commit1, commit2, email):
         print(e)
 
 
+def next_comparison(email):
+    if not _driver:
+        init_driver()
+    try:
+        n = _driver.session().read_transaction(query.count_compared, email)
+        commit1, commit2 = _driver.session().read_transaction(
+            query.next_comparison_node, email)
+        return n, commit1, commit2
+    except Exception as e:
+        print(e)
+
+
 def add_reason(more_valuable_commit, less_valuable_commit, reason, email):
     if not _driver:
         init_driver()
@@ -93,25 +105,25 @@ def add_reason(more_valuable_commit, less_valuable_commit, reason, email):
         print(e)
 
 
-def add_label(name):
+def add_label(name, genre='Customized'):
     if not _driver:
         init_driver()
     lid = sha1(name.encode('utf-8')).hexdigest()
     try:
         res_lid = _driver.session().write_transaction(
-            query.create_label_node, lid, name)
+            query.create_label_node, lid, name, genre)
         assert res_lid == lid
         return lid
     except Exception as e:
         print(e)
 
 
-def add_review(commit_id, label_id, email):
+def add_review(commit_id, label_ids, email):
     if not _driver:
         init_driver()
     try:
         _driver.session().write_transaction(
-            query.create_label_relationship, commit_id, label_id, email)
+            query.create_label_relationship, commit_id, label_ids, email)
     except Exception as e:
         print(e)
 
@@ -126,6 +138,8 @@ def main():
     add_comparison('b35414f93aa5caaff115791d4040271047df25b3',
                    '915330ffc269eed821d652292993ff75b717a66b',
                    'w@persper.org')
+    n, c1, c2 = next_comparison('w@persper.org')
+    print(n, c1['id'], c2['id'])
     add_reason('915330ffc269eed821d652292993ff75b717a66b',
                'b35414f93aa5caaff115791d4040271047df25b3',
                '第二个 commit 是 disable a feature，第一个是优化体验。',
@@ -134,12 +148,14 @@ def main():
                title='disable the position saving',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
                project_id=project_id)
+    label_id_small = add_label('small', 'Builtin')
     label_id_maintenance = add_label('reduce_feature')
     label_id_improvement = add_label('improve_use')
     add_review('915330ffc269eed821d652292993ff75b717a66b',
-               label_id_improvement, 'jinglei@persper.org')
+               [label_id_small, label_id_improvement],
+               'jinglei@persper.org')
     add_review('b35414f93aa5caaff115791d4040271047df25b3',
-               label_id_maintenance, 'jinglei@persper.org')
+               [label_id_maintenance], 'jinglei@persper.org')
 
 
 if __name__ == '__main__':
