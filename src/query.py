@@ -48,12 +48,6 @@ def create_comparison_node(tx, comparison_id, commit1, commit2, email):
            cid=comparison_id, c1=commit1, c2=commit2, email=email)
 
 
-def count_compared(tx, email):
-    result = tx.run("MATCH (:Commit)-[r:OUTVALUES {email: $email}]->(:Commit) "
-                    "RETURN COUNT(r)", email=email)
-    return result.single()[0]
-
-
 def next_comparison_node(tx, email):
     result = tx.run("MATCH (:Email {email: $email})-[:COMPARES]->(c:Comparison) "
                     "WITH c ORDER BY c.id LIMIT 1 "
@@ -76,14 +70,20 @@ def delete_comparison_node(tx, comparison_id):
     return record['c1'], record['c2']
 
 
-def create_value_relationship(tx, more_valuable_commit,
-                              less_valuable_commit, reason, email):
+def create_compared_relationship(tx, comparison_id, more_valuable_commit,
+                                 less_valuable_commit, reason, email):
     tx.run("MERGE (c1:Commit {id: $c1}) "
            "MERGE (c2:Commit {id: $c2}) "
-           "MERGE (c1)-[r:OUTVALUES {email: $email}]->(c2) "
+           "MERGE (c1)-[r:OUTVALUES {id: $comp_id, email: $email}]->(c2) "
            "SET r.reason = $reason",
            c1=more_valuable_commit, c2=less_valuable_commit,
-           email=email, reason=reason)
+           comp_id=comparison_id, email=email, reason=reason)
+
+
+def count_compared_relationships(tx, email):
+    result = tx.run("MATCH (:Commit)-[r:OUTVALUES {email: $email}]->(:Commit) "
+                    "RETURN COUNT(r)", email=email)
+    return result.single()[0]
 
 
 def create_label_node(tx, label_id, label_name, genre):
@@ -94,9 +94,10 @@ def create_label_node(tx, label_id, label_name, genre):
     return result.single()[0]
 
 
-def create_label_relationship(tx, commit_id, label_ids, email):
+def create_label_relationship(tx, comparison_id, commit_id, label_ids, email):
     for label_id in label_ids:
         tx.run("MATCH (c:Commit {id: $commit_id}) "
                "MATCH (l:Label {id: $label_id}) "
-               "MERGE (c)-[:LABELED_WITH {email: $email}]->(l)",
-               commit_id=commit_id, label_id=label_id, email=email)
+               "MERGE (c)-[:LABELED_WITH {comparison_id: $comp_id, email: $email}]->(l)",
+               commit_id=commit_id, label_id=label_id,
+               comp_id=comparison_id, email=email)
