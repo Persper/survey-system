@@ -161,9 +161,20 @@ def add_review(*, comparison_id, commit_id, label_ids, email):
         print(e)
 
 
+def add_comment(comparison_id, comment, email):
+    if not _driver:
+        init_driver()
+    try:
+        _driver.session().write_transaction(
+            query.create_comment_relationship, comparison_id, comment, email)
+    except Exception as e:
+        print(e)
+
+
 def main():
     pid = add_project('Hotot', 'https://github.com/lyricat/Hotot')
     add_developer('Lyric Wai', 'w@persper.org')
+    # The first pair for test
     add_commit(sha1_hex='915330ffc269eed821d652292993ff75b717a66b',
                title='new image for tweets which are retweeted by user',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
@@ -187,7 +198,10 @@ def main():
 
     cid, c1, c2, n = next_review(pid, 'jinglei@persper.org')
     assert cid == comp['id']
-    print('Reviewing: ', n, cid, c1['id'], c2['id'])
+    selected = c1['id']
+    if c1['id'] > c2['id']:
+        c1, c2 = c2, c1
+    print('Reviewing: ', n, cid, c1['id'], c2['id'], selected)
     label_small = add_label('small', 'Builtin')
     label_reduce_feature = add_label('reduce_feature')
     label_improve_use = add_label('improve_use')
@@ -199,6 +213,49 @@ def main():
     add_review(comparison_id=cid, commit_id=c2['id'],
                label_ids=[label_reduce_feature],
                email='jinglei@persper.org')
+    test, _, _, _ = next_review(pid, 'jinglei@persper.org')
+    assert test is None
+
+    # The second pair for test
+    add_commit(sha1_hex='810b5bdd1b6010867c8f8c04589633796a7e4362',
+               title='Closes #445 - preferences window now showing for statusnet accounts',
+               author='Lyric Wai', email='5h3ll3x@gmail.com',
+               project_id=pid)
+    add_commit(sha1_hex='d135f46d4149d1dd3b7fad92c737b1ab96991821',
+               title='Fixed #93',
+               author='Lyric Wai', email='5h3ll3x@gmail.com',
+               project_id=pid)
+    cid2 = add_comparison('810b5bdd1b6010867c8f8c04589633796a7e4362',
+                          'd135f46d4149d1dd3b7fad92c737b1ab96991821',
+                          'w@persper.org')
+    # The third pair for test
+    add_commit(sha1_hex='84e9c84b6bfa6c51caaa402248bcc5b60b713668',
+               title='use notification to popup errors.',
+               author='Lyric Wai', email='5h3ll3x@gmail.com',
+               project_id=pid)
+    add_commit(sha1_hex='a37dde730e446402683aa2bf8647870c8446b34e',
+               title='minor improvements',
+               author='Lyric Wai', email='5h3ll3x@gmail.com',
+               project_id=pid)
+    cid3 = add_comparison('a37dde730e446402683aa2bf8647870c8446b34e',
+                          '84e9c84b6bfa6c51caaa402248bcc5b60b713668',
+                          'w@persper.org')
+
+    comp_tmp, _, _, n_tmp = next_comparison('w@persper.org')
+    comp, c1, c2, n = next_comparison('w@persper.org')
+    assert comp['id'] == comp_tmp['id'] and n == n_tmp
+    print('Answering: ', n, comp['id'], c1['id'], c2['id'])
+    add_reason(comparison_id=cid3, valuable_commit='84e9c84b6bfa6c51caaa402248bcc5b60b713668',
+               reason='B is a small refactor; A is to notify errors.', email='w@persper.org')
+
+    comp, c1, c2, n = next_comparison('w@persper.org')
+    assert comp['id'] == cid2
+
+    cid_tmp, _, _, n_tmp = next_review(pid, 'jinglei@persper.org')
+    cid, c1, c2, n = next_review(pid, 'jinglei@persper.org')
+    assert cid == cid_tmp and n == n_tmp
+    add_comment(cid, 'TODO', 'jinglei@persper.org')
+
     test, _, _, _ = next_review(pid, 'jinglei@persper.org')
     assert test is None
 

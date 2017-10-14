@@ -72,10 +72,10 @@ def create_compared_relationship(tx, comparison_id, more_valuable_commit,
                                  less_valuable_commit, reason, email):
     tx.run("MERGE (c1:Commit {id: $c1}) "
            "MERGE (c2:Commit {id: $c2}) "
-           "MERGE (c1)-[r:OUTVALUES {id: $comp_id, email: $email}]->(c2) "
+           "MERGE (c1)-[r:OUTVALUES {id: $cid, email: $email}]->(c2) "
            "SET r.reason = $reason",
            c1=more_valuable_commit, c2=less_valuable_commit,
-           comp_id=comparison_id, email=email, reason=reason)
+           cid=comparison_id, email=email, reason=reason)
 
 
 def next_compared_relationship(tx, project_id):
@@ -107,9 +107,19 @@ def create_label_relationship(tx, comparison_id, commit_id, label_ids, email):
     for label_id in label_ids:
         tx.run("MATCH (c:Commit {id: $commit_id}) "
                "MATCH (l:Label {id: $label_id}) "
-               "MERGE (c)-[:LABELED_WITH {comparison_id: $comp_id, email: $email}]->(l)",
+               "MERGE (c)-[:LABELED_WITH {comparison_id: $cid, email: $email}]->(l)",
                commit_id=commit_id, label_id=label_id,
-               comp_id=comparison_id, email=email)
+               cid=comparison_id, email=email)
+
+
+def create_comment_relationship(tx, comparison_id, comment, email):
+    tx.run("MATCH (c1:Commit)-[:OUTVALUES {id: $cid}]->(c2:Commit) "
+           "MERGE (l:Label {name: 'unknown'}) "
+           "MERGE (c1)-[r1:LABELED_WITH {comparison_id: $cid, email: $email}]->(l) "
+           "SET r1.comment = $comment "
+           "MERGE (c2)-[r2:LABELED_WITH {comparison_id: $cid, email: $email}]->(l) "
+           "SET r2.comment = $comment",
+           cid=comparison_id, comment=comment, email=email)
 
 
 def count_reviewed_relationships(tx, email):
