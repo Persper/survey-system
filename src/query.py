@@ -10,7 +10,7 @@ def create_project_node(tx, project_id, name, url):
 def get_project_node(tx, project_id):
     result = tx.run("MATCH (p:Project {id: $project_id}) RETURN p",
                     project_id=project_id)
-    return result.single()
+    return result.single()[0]
 
 
 def create_developer_email(tx, name, email):
@@ -55,8 +55,6 @@ def next_comparison_node(tx, email):
                     "RETURN c, c1, c2",
                     email=email)
     record = result.single()
-    if record is None:
-        return None, None, None
     return record['c'], record['c1'], record['c2']
 
 
@@ -80,6 +78,17 @@ def create_compared_relationship(tx, comparison_id, more_valuable_commit,
            comp_id=comparison_id, email=email, reason=reason)
 
 
+def next_compared_relationship(tx, project_id):
+    result = tx.run("MATCH (c1:Commit)-[r:OUTVALUES]->(c2:Commit) "
+                    "WHERE (c1)-[:COMMITTED_TO]->(:Project {id: $pid}) "
+                    "AND NOT (c1)-[:LABELED_WITH {comparison_id: r.id}]->(:Label) "
+                    "OR (c2)-[:COMMITTED_TO]->(:Project {id: $pid}) "
+                    "AND NOT (c2)-[:LABELED_WITH {comparison_id: r.id}]->(:Label) "
+                    "RETURN r.id, c1, c2 ORDER BY r.id LIMIT 1", pid=project_id)
+    record = result.single()
+    return record['r.id'], record['c1'], record['c2']
+
+
 def count_compared_relationships(tx, email):
     result = tx.run("MATCH (:Commit)-[r:OUTVALUES {email: $email}]->(:Commit) "
                     "RETURN COUNT(r)", email=email)
@@ -101,3 +110,9 @@ def create_label_relationship(tx, comparison_id, commit_id, label_ids, email):
                "MERGE (c)-[:LABELED_WITH {comparison_id: $comp_id, email: $email}]->(l)",
                commit_id=commit_id, label_id=label_id,
                comp_id=comparison_id, email=email)
+
+
+def count_reviewed_relationships(tx, email):
+    result = tx.run("MATCH (:Commit)-[r:LABELED_WITH {email: $email}]->(:LABEL) "
+                    "RETURN count(DISTINCT r.id)", email=email)
+    return result.single()[0]

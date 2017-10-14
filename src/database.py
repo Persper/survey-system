@@ -104,6 +104,7 @@ def next_comparison(email):
         return comparison, commit1, commit2, n
     except Exception as e:
         print(e)
+        return None, None, None, None
 
 
 def add_reason(*, comparison_id, valuable_commit, reason, email):
@@ -120,6 +121,20 @@ def add_reason(*, comparison_id, valuable_commit, reason, email):
         tx.commit()
     except Exception as e:
         print(e)
+
+
+def next_review(project_id, email):
+    if not _driver:
+        init_driver()
+    try:
+        n = _driver.session().read_transaction(
+            query.count_reviewed_relationships, email)
+        comparison_id, commit1, commit2 = _driver.session().read_transaction(
+            query.next_compared_relationship, project_id)
+        return comparison_id, commit1, commit2, n
+    except Exception as e:
+        print(e)
+        return None, None, None, None
 
 
 def add_label(name, genre='Customized'):
@@ -147,12 +162,12 @@ def add_review(*, comparison_id, commit_id, label_ids, email):
 
 
 def main():
-    project_id = add_project('Hotot', 'https://github.com/lyricat/Hotot')
+    pid = add_project('Hotot', 'https://github.com/lyricat/Hotot')
     add_developer('Lyric Wai', 'w@persper.org')
     add_commit(sha1_hex='915330ffc269eed821d652292993ff75b717a66b',
                title='new image for tweets which are retweeted by user',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
-               project_id=project_id)
+               project_id=pid)
     cid = add_comparison('b35414f93aa5caaff115791d4040271047df25b3',
                          '915330ffc269eed821d652292993ff75b717a66b',
                          'w@persper.org')
@@ -166,18 +181,26 @@ def main():
     add_commit(sha1_hex='b35414f93aa5caaff115791d4040271047df25b3',
                title='disable the position saving',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
-               project_id=project_id)
-    label_id_small = add_label('small', 'Builtin')
-    label_id_maintenance = add_label('reduce_feature')
-    label_id_improvement = add_label('improve_use')
-    add_review(comparison_id=cid,
-               commit_id='915330ffc269eed821d652292993ff75b717a66b',
-               label_ids=[label_id_small, label_id_improvement],
+               project_id=pid)
+    test, _, _, _ = next_comparison('w@persper.org')
+    assert test is None
+
+    cid, c1, c2, n = next_review(pid, 'jinglei@persper.org')
+    assert cid == comp['id']
+    print('Reviewing: ', n, cid, c1['id'], c2['id'])
+    label_small = add_label('small', 'Builtin')
+    label_reduce_feature = add_label('reduce_feature')
+    label_improve_use = add_label('improve_use')
+    add_review(comparison_id=cid, commit_id=c1['id'],
+               label_ids=[label_small, label_improve_use],
                email='jinglei@persper.org')
-    add_review(comparison_id=cid,
-               commit_id='b35414f93aa5caaff115791d4040271047df25b3',
-               label_ids=[label_id_maintenance],
+    test, _, _, _ = next_review(pid, 'jinglei@persper.org')
+    assert test == cid
+    add_review(comparison_id=cid, commit_id=c2['id'],
+               label_ids=[label_reduce_feature],
                email='jinglei@persper.org')
+    test, _, _, _ = next_review(pid, 'jinglei@persper.org')
+    assert test is None
 
 
 if __name__ == '__main__':
