@@ -150,6 +150,24 @@ def add_label(name, genre='Customized'):
         print(e)
 
 
+def list_labels():
+    if not _driver:
+        init_driver()
+    try:
+        records = _driver.session().read_transaction(query.list_label_nodes)
+        builtin = []
+        customized = []
+        for r in records:
+            builtin.append({'id': r['builtin']['id'],
+                            'name': r['builtin']['name']})
+            customized.append({'id': r['customized']['id'],
+                               'name': r['customized']['name']})
+        return builtin, customized
+    except Exception as e:
+        print(e)
+        return None, None
+
+
 def add_review(*, comparison_id, commit_id, label_ids, email):
     if not _driver:
         init_driver()
@@ -258,6 +276,9 @@ def main():
 
     test, _, _, _ = next_review(pid, 'jinglei@persper.org')
     assert test is None
+
+    builtin, customized = list_labels()
+    print(builtin, customized)
 
 
 if __name__ == '__main__':
