@@ -104,10 +104,9 @@ def create_label_node(tx, label_id, label_name, genre):
 
 
 def list_label_nodes(tx):
-    result = tx.run("MATCH (builtin:Builtin) "
-                    "MATCH (customized:Customized) "
-                    "RETURN builtin, customized")
-    return result.records()
+    builtin = tx.run("MATCH (label:Builtin) RETURN label")
+    customized = tx.run("MATCH (label:Customized) RETURN label")
+    return builtin.records(), customized.records()
 
 
 def create_label_relationship(tx, comparison_id, commit_id, label_ids, email):

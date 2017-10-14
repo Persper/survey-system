@@ -154,15 +154,13 @@ def list_labels():
     if not _driver:
         init_driver()
     try:
-        records = _driver.session().read_transaction(query.list_label_nodes)
-        builtin = []
-        customized = []
-        for r in records:
-            builtin.append({'id': r['builtin']['id'],
-                            'name': r['builtin']['name']})
-            customized.append({'id': r['customized']['id'],
-                               'name': r['customized']['name']})
-        return builtin, customized
+        rec_builtin, rec_custom = _driver.session().read_transaction(
+            query.list_label_nodes)
+        builtin = [{'id': r['label']['id'], 'name': r['label']['name']}
+                   for r in rec_builtin]
+        custom = [{'id': r['label']['id'], 'name': r['label']['name']}
+                  for r in rec_custom]
+        return builtin, custom
     except Exception as e:
         print(e)
         return None, None
@@ -192,7 +190,7 @@ def add_comment(comparison_id, comment, email):
 def main():
     pid = add_project('Hotot', 'https://github.com/lyricat/Hotot')
     add_developer('Lyric Wai', 'w@persper.org')
-    # The first pair for test
+    # The 1st pair for test
     add_commit(sha1_hex='915330ffc269eed821d652292993ff75b717a66b',
                title='new image for tweets which are retweeted by user',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
@@ -234,7 +232,7 @@ def main():
     test, _, _, _ = next_review(pid, 'jinglei@persper.org')
     assert test is None
 
-    # The second pair for test
+    # The 2nd pair for test
     add_commit(sha1_hex='810b5bdd1b6010867c8f8c04589633796a7e4362',
                title='Closes #445 - preferences window now showing for statusnet accounts',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
@@ -246,7 +244,7 @@ def main():
     cid2 = add_comparison('810b5bdd1b6010867c8f8c04589633796a7e4362',
                           'd135f46d4149d1dd3b7fad92c737b1ab96991821',
                           'w@persper.org')
-    # The third pair for test
+    # The 3rd pair for test
     add_commit(sha1_hex='84e9c84b6bfa6c51caaa402248bcc5b60b713668',
                title='use notification to popup errors.',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
@@ -279,6 +277,32 @@ def main():
 
     builtin, customized = list_labels()
     print(builtin, customized)
+
+    # The 4th pair for test
+    add_commit(sha1_hex='873bbd8eaf1bf12121e56f009324e1b29a9154d2',
+               title='remove useless styles',
+               author='Lyric Wai', email='5h3ll3x@gmail.com',
+               project_id=pid)
+    add_commit(sha1_hex='f2e0f99fd07be21d535d96279d614ccbfc89ad02',
+               title="change my_profile_btn's opacity to 100% when mouse hover on it.",
+               author='Lyric Wai', email='5h3ll3x@gmail.com',
+               project_id=pid)
+    add_comparison('873bbd8eaf1bf12121e56f009324e1b29a9154d2',
+                   'f2e0f99fd07be21d535d96279d614ccbfc89ad02',
+                   'w@persper.org')
+
+    # The 5th pair for test
+    add_commit(sha1_hex='fe857cbb4893f57b7cd7b4f4daff9ad8e61f463b',
+               title='Chrome app bump to 0.9.7.21',
+               author='Lyric Wai', email='5h3ll3x@gmail.com',
+               project_id=pid)
+    add_commit(sha1_hex='3cdd92c6f819004e1a36713a4551fd29e878497a',
+               title='remove useless image',
+               author='Lyric Wai', email='5h3ll3x@gmail.com',
+               project_id=pid)
+    add_comparison('fe857cbb4893f57b7cd7b4f4daff9ad8e61f463b',
+                   '3cdd92c6f819004e1a36713a4551fd29e878497a',
+                   'w@persper.org')
 
 
 if __name__ == '__main__':
