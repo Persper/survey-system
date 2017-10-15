@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from src.database import *
+from database import *
 
 
 def main():
