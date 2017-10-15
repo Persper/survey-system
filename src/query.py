@@ -129,6 +129,8 @@ def create_comment_relationship(tx, comparison_id, comment, email):
 
 
 def count_reviewed_relationships(tx, email):
-    result = tx.run("MATCH (:Commit)-[r:LABELED_WITH {email: $email}]->(:LABEL) "
-                    "RETURN count(DISTINCT r.id)", email=email)
+    result = tx.run("MATCH (c1:Commit)-[r:OUTVALUES]->(c2:Commit) "
+                    "WHERE (c1)-[:LABELED_WITH {email: $email}]->(:Label) "
+                    "AND (c2)-[:LABELED_WITH {email: $email}]->(:Label) "
+                    "RETURN count(r.id)", email=email)
     return result.single()[0]
