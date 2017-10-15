@@ -11,7 +11,7 @@
       <textarea class="reason" placeholder="Write reason here." v-model="comment"></textarea>
       <div class="buttons">
         <button class="quit-button" v-on:click="quitButtonClicked">Quit</button>
-        <button class="save-button" v-on:click="saveButtonClicked" :disabled="selectedOption === 0">Save & Continue</button>
+        <button class="save-button" v-on:click="saveButtonClicked" :disabled="selectedOption === 0 || comment.trim().length === 0">Save & Continue</button>
       </div>
     </div>
     <div v-else>
@@ -54,11 +54,19 @@ export default {
       return []
     }
   },
+  watch: {
+    options: function (oldValue, newValue) {
+      if (oldValue.id !== newValue.id) {
+        this.comment = ''
+        this.selectedOption = 0
+      }
+    }
+  },
   methods: {
     saveButtonClicked: function (event) {
       let payload = {
         'selected': this.selectedOption,
-        'comment': this.comment
+        'reason': this.comment
       }
       this.$emit('result', payload)
     },
