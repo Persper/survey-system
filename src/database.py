@@ -7,7 +7,7 @@ import random
 from neo4j.v1 import basic_auth
 from neo4j.v1 import GraphDatabase
 
-import src.query as query
+import query
 
 
 _driver = None
@@ -24,7 +24,7 @@ def local_credential(path):
 def init_driver():
     global _driver
     bolt = 'bolt://hobby-ifakifjiedbegbkeliefldpl.dbs.graphenedb.com:24786'
-    usr, pwd = local_credential('../neo4j-user')
+    usr, pwd = local_credential('neo4j-user')
     _driver = GraphDatabase.driver(bolt, auth=basic_auth(usr, pwd))
     print('INFO: the Neo4j driver is initialized.')
 

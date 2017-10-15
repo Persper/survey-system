@@ -1,15 +1,27 @@
+import re
+from urllib.parse import urljoin
+
 from flask import abort
-from flask_cors import CORS
 from flask import Flask
 from flask import jsonify
 from flask import request
-from hashlib import sha1
+from flask_cors import CORS
+
+import database
+
 
 app = Flask(__name__)
 CORS(app)
 
 STATUS_REQ_JSON = {'status': 1, 'message': 'A JSON request is required!'}
-STATUS_BAD_REQUEST = {'status': 2, 'message': 'Bad request parameters!'}
+STATUS_BAD_REQUEST = {'status': 2, 'message': 'Bad request format!'}
+STATUS_END = {'status': 100, 'message': 'Good job! Mission complete!'}
+
+sha1_pattern = re.compile(r'[0-9a-f]{40}')
+
+
+def check_sha1(digest):
+    return not re.match(sha1_pattern, digest) is None
 
 
 @app.route('/survey/v1', methods=['GET'])
@@ -17,27 +29,28 @@ def version():
     return 'The Persper Survey System API v1'
 
 
+def commit_url(project_url, commit_id):
+    if 'github' in project_url.lower():
+        return urljoin(project_url, '/commit/') + commit_id
+
+
 @app.route('/survey/v1/projects/<project_id>/questions/next', methods=['GET'])
 def next_question(project_id):
     if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
         abort(403)
-    if project_id != '6f2295863057c2e7059b74a01c79ab707f8789c3':
+    project = database.get_project(project_id)
+    if project is None:
         return jsonify(STATUS_BAD_REQUEST)
 
-    commit1 = dict()
-    commit1['id'] = '915330ffc269eed821d652292993ff75b717a66b'
-    commit1['title'] = 'new image for tweets which are retweeted by user.'
-    commit1['url'] = 'https://github.com/lyricat/Hotot/commit/915330ffc2'
-
-    commit2 = dict()
-    commit2['id'] = 'b35414f93aa5caaff115791d4040271047df25b3'
-    commit2['title'] = 'disable the position saving'
-    commit2['url'] = 'https://github.com/lyricat/Hotot/commit/b35414f93a'
-
-    question = dict()
-    question['id'] = 'a248f3aaf9c99bed17ef9ca24d131cebeaa1906f'
-    question['type'] = 'single'
-    question['commits'] = [commit1, commit2]
+    comp, c1, c2, n = database.next_comparison('w@persper.org')  # TODO
+    if comp is None:
+        return jsonify(STATUS_END)
+    commit1 = {'id': c1['id'], 'title': c1['title'],
+               'url': commit_url(project['url'], c1['id'])}
+    commit2 = {'id': c2['id'], 'title': c2['title'],
+               'url': commit_url(project['url'], c2['id'])}
+    question = {'id': comp['id'], 'type': 'single',
+                'commits': [commit1, commit2], 'answered': n}
 
     return jsonify({'status': 0, 'data': {'question': question}})
 
@@ -48,12 +61,21 @@ def submit_answer(project_id, question_id):
         abort(403)
     if not request.json:
         return jsonify(STATUS_REQ_JSON)
-    if project_id != '6f2295863057c2e7059b74a01c79ab707f8789c3':
+    if not check_sha1(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
-    commit_id = request.json.get('selected')
-    if not commit_id:
+    selected = request.json.get('selected')
+    reason = request.json.get('reason')
+    # If no commit is selected, the reason must be specified by
+    # either human input or the option title (e.g., 'not comparable').
+    if selected is None or reason is None:
         return jsonify(STATUS_BAD_REQUEST)
+    if not check_sha1(selected):
+        selected = None
+        if not reason:
+            return jsonify(STATUS_BAD_REQUEST)
+    database.add_answer(comparison_id=question_id, valuable_commit=selected,
+                        reason=reason, email='w@persper.org')   # TODO
     return jsonify({'status': 0})
 
 
@@ -61,23 +83,20 @@ def submit_answer(project_id, question_id):
 def next_review(project_id):
     if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
         abort(403)
-    if project_id != '6f2295863057c2e7059b74a01c79ab707f8789c3':
+    project = database.get_project(project_id)
+    if project is None:
         return jsonify(STATUS_BAD_REQUEST)
 
-    commit1 = dict()
-    commit1['id'] = '915330ffc269eed821d652292993ff75b717a66b'
-    commit1['title'] = 'new image for tweets which are retweeted by user.'
-    commit1['url'] = 'https://github.com/lyricat/Hotot/commit/915330ffc2'
-
-    commit2 = dict()
-    commit2['id'] = 'b35414f93aa5caaff115791d4040271047df25b3'
-    commit2['title'] = 'disable the position saving'
-    commit2['url'] = 'https://github.com/lyricat/Hotot/commit/b35414f93a'
-
-    review = dict()
-    review['id'] = 'a248f3aaf9c99bed17ef9ca24d131cebeaa1906f'
-    review['type'] = 'single'
-    review['selected'] = '915330ffc269eed821d652292993ff75b717a66b'
+    cid, c1, c2, n = database.next_review(project_id, 'jinglei@persper.org')  # TODO
+    if cid is None:
+        return jsonify(STATUS_END)
+    review = {'id': cid, 'type': 'single', 'selected': c1['id'], 'reviewed': n}
+    if c1['id'] > c2['id']:
+        c1, c2 = c2, c1
+    commit1 = {'id': c1['id'], 'title': c1['title'],
+               'url': commit_url(project['url'], c1['id'])}
+    commit2 = {'id': c2['id'], 'title': c2['title'],
+               'url': commit_url(project['url'], c2['id'])}
     review['commits'] = [commit1, commit2]
 
     return jsonify({'status': 0, 'data': {'review': review}})
@@ -89,43 +108,54 @@ def submit_review(project_id, review_id):
         abort(403)
     if not request.json:
         return jsonify(STATUS_REQ_JSON)
-    if project_id != '6f2295863057c2e7059b74a01c79ab707f8789c3':
+    if not check_sha1(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
-    reason = request.json.get('reason')
+    comment = request.json.get('comment')
     commit_labels = request.json.get('commitLabels')
-    if not reason and not commit_labels:
+    if not comment and not commit_labels:
         return jsonify(STATUS_BAD_REQUEST)
+    if comment:
+        database.add_comment(review_id, comment, 'jinglei@persper.org')  # TODO
+        return jsonify({'status': 0})
+    commit2labels = dict()
+    new_labels = []
     for label in commit_labels:
-        commit_id = label.get('commitID')
+        commit_id = label.get('commitId')
         if not commit_id:
             return jsonify(STATUS_BAD_REQUEST)
-        label_id = label.get('labelID')
+        if commit_id not in commit2labels:
+            commit2labels[commit_id] = []
+        label_id = label.get('labelId')
         if label_id:
+            commit2labels[commit_id].append(label_id)
             continue
         label_name = label.get('labelName')
         if label_name:
+            label_id = database.add_label(label_name)
+            new_labels.append({'label': {'id': label_id, 'name': label_name}})
+            commit2labels[commit_id].append(label_id)
             continue
         return jsonify(STATUS_BAD_REQUEST)
-    return jsonify({'status': 0})
+    for commit_id, label_ids in commit2labels.items():
+        print(label_ids)
+        database.add_review(comparison_id=review_id, commit_id=commit_id,
+                            label_ids=label_ids,
+                            email='jinglei@persper.org')  # TODO
+    return jsonify({'status': 0, 'data': new_labels})
 
 
 @app.route('/survey/v1/projects/<project_id>/labels', methods=['GET'])
 def labels(project_id):
     if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
         abort(403)
-    if project_id != '6f2295863057c2e7059b74a01c79ab707f8789c3':
+    if not check_sha1(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
-    label = dict()
-    label['id'] = sha1(b'tiny').hexdigest()
-    label['title'] = 'tiny'
-
-    builtins = [label, label]
-    customised = [label]
+    builtin, customized = database.list_labels()
 
     return jsonify({'status': 0,
-                    'data': {'builtins': builtins, 'customized': customised}})
+                    'data': {'builtin': builtin, 'customized': customized}})
 
 
 if __name__ == '__main__':
