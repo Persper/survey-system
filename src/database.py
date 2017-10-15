@@ -97,6 +97,7 @@ def add_comparison(commit1, commit2, email):
 def next_comparison(email):
     if not _driver:
         init_driver()
+    n = -1
     try:
         n = _driver.session().read_transaction(
             query.count_compared_relationships, email)
@@ -130,6 +131,7 @@ def add_answer(*, comparison_id, valuable_commit, reason, email):
 def next_review(project_id, email):
     if not _driver:
         init_driver()
+    n = -1
     try:
         n = _driver.session().read_transaction(
             query.count_reviewed_relationships, email)
