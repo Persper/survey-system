@@ -13,16 +13,17 @@ def get_project_node(tx, project_id):
     return result.single()[0]
 
 
-def create_developer_email(tx, name, email):
+def create_developer_email(tx, name, email, token):
     tx.run("MERGE (e:Email {email: $email}) "
+           "SET e.token = $token "
            "MERGE (d:Developer {name: $name}) "
            "MERGE (e)-[:NAMED_TO]->(d)",
-           email=email, name=name)
+           email=email, name=name, token=token)
 
 
 def create_commit_node(tx, sha1_hex, title):
     tx.run("MERGE (c:Commit {id: $sha1_hex}) "
-           "SET c.title = $title ",
+           "SET c.title = $title",
            sha1_hex=sha1_hex, title=title)
 
 
@@ -48,89 +49,105 @@ def create_comparison_node(tx, comparison_id, commit1, commit2, email):
            cid=comparison_id, c1=commit1, c2=commit2, email=email)
 
 
-def next_comparison_node(tx, email):
-    result = tx.run("MATCH (:Email {email: $email})-[:COMPARES]->(c:Comparison) "
+def next_comparison_node(tx, token):
+    result = tx.run("MATCH (:Email {token: $token})-[:COMPARES]->(c:Comparison) "
                     "WITH c ORDER BY c.id LIMIT 1 "
                     "MATCH (c1:Commit {id: c.commit1}), (c2:Commit {id: c.commit2}) "
                     "RETURN c, c1, c2",
-                    email=email)
+                    token=token)
     record = result.single()
     return record['c'], record['c1'], record['c2']
 
 
-def delete_comparison_node(tx, comparison_id):
-    result = tx.run("MATCH (n:Comparison {id: $cid}) "
+def delete_comparison_node(tx, comparison_id, token):
+    result = tx.run("MATCH (:Email {token: $token})-[:COMPARES]->(n:Comparison {id: $cid}) "
                     "WITH n, n.commit1 AS c1, n.commit2 AS c2 "
                     "DETACH DELETE n "
                     "RETURN c1, c2",
-                    cid=comparison_id)
+                    cid=comparison_id, token=token)
     record = result.single()
     return record['c1'], record['c2']
 
 
 def create_compared_relationship(tx, comparison_id, more_valuable_commit,
-                                 less_valuable_commit, reason, email):
-    tx.run("MERGE (c1:Commit {id: $c1}) "
+                                 less_valuable_commit, reason, token):
+    tx.run("MATCH (e:Email {token: $token}) "
+           "MERGE (c1:Commit {id: $c1}) "
            "MERGE (c2:Commit {id: $c2}) "
-           "MERGE (c1)-[r:OUTVALUES {id: $cid, email: $email}]->(c2) "
+           "MERGE (c1)-[r:OUTVALUES {id: $cid, email: e.email}]->(c2) "
            "SET r.reason = $reason",
            c1=more_valuable_commit, c2=less_valuable_commit,
-           cid=comparison_id, email=email, reason=reason)
+           cid=comparison_id, token=token, reason=reason)
 
 
-def next_compared_relationship(tx, project_id):
-    result = tx.run("MATCH (c1:Commit)-[r:OUTVALUES]->(c2:Commit) "
+def create_reviewer_node(tx, email, token):
+    tx.run("MERGE (r:Reviewer {email: $email}) "
+           "SET r.token = $token",
+           email=email, token=token)
+
+
+def next_compared_relationship(tx, project_id, token):
+    result = tx.run("MATCH (:Reviewer {token: $token}) "
+                    "MATCH (c1:Commit)-[r:OUTVALUES]->(c2:Commit) "
                     "WHERE (c1)-[:COMMITTED_TO]->(:Project {id: $pid}) "
                     "AND NOT (c1)-[:LABELED_WITH {comparison_id: r.id}]->(:Label) "
                     "OR (c2)-[:COMMITTED_TO]->(:Project {id: $pid}) "
                     "AND NOT (c2)-[:LABELED_WITH {comparison_id: r.id}]->(:Label) "
-                    "RETURN r.id, c1, c2 ORDER BY r.id LIMIT 1", pid=project_id)
+                    "RETURN r.id, c1, c2 ORDER BY r.id LIMIT 1",
+                    pid=project_id, token=token)
     record = result.single()
     return record['r.id'], record['c1'], record['c2']
 
 
-def count_compared_relationships(tx, email):
-    result = tx.run("MATCH (:Commit)-[r:OUTVALUES {email: $email}]->(:Commit) "
-                    "RETURN COUNT(r)", email=email)
+def count_compared_relationships(tx, token):
+    result = tx.run("MATCH (e:Email {token: $token}) "
+                    "MATCH (:Commit)-[r:OUTVALUES {email: e.email}]->(:Commit) "
+                    "RETURN COUNT(r)", token=token)
     return result.single()[0]
 
 
-def create_label_node(tx, label_id, label_name, genre):
-    result = tx.run("MERGE (l:Label:%s {name: $name}) "
+def create_label_node(tx, label_id, label_name, genre, token):
+    result = tx.run("MATCH (:Reviewer {token: $token}) "
+                    "MERGE (l:Label:%s {name: $name}) "
                     "ON CREATE SET l.id = $id "
                     "RETURN l.id" % genre,
-                    id=label_id, name=label_name)
+                    id=label_id, name=label_name, token=token)
     return result.single()[0]
 
 
-def list_label_nodes(tx):
-    builtin = tx.run("MATCH (label:Builtin) RETURN label")
-    customized = tx.run("MATCH (label:Customized) RETURN label")
+def list_label_nodes(tx, token):
+    builtin = tx.run("MATCH (:Reviewer {token: $token}) "
+                     "MATCH (label:Builtin) RETURN label", token=token)
+    customized = tx.run("MATCH (:Reviewer {token: $token}) "
+                        "MATCH (label:Customized) RETURN label", token=token)
     return builtin.records(), customized.records()
 
 
-def create_label_relationship(tx, comparison_id, commit_id, label_ids, email):
+def create_label_relationship(tx, comparison_id, commit_id, label_ids, token):
     for label_id in label_ids:
-        tx.run("MATCH (c:Commit {id: $commit_id}) "
+        tx.run("MATCH (r:Reviewer {token: $token}) "
+               "MATCH (c:Commit {id: $commit_id}) "
                "MATCH (l:Label {id: $label_id}) "
-               "MERGE (c)-[:LABELED_WITH {comparison_id: $cid, email: $email}]->(l)",
+               "MERGE (c)-[:LABELED_WITH {comparison_id: $cid, email: r.email}]->(l)",
                commit_id=commit_id, label_id=label_id,
-               cid=comparison_id, email=email)
+               cid=comparison_id, token=token)
 
 
-def create_comment_relationship(tx, comparison_id, comment, email):
-    tx.run("MATCH (c1:Commit)-[:OUTVALUES {id: $cid}]->(c2:Commit) "
+def create_comment_relationship(tx, comparison_id, comment, token):
+    tx.run("MATCH (r:Reviewer {token: $token}) "
+           "MATCH (c1:Commit)-[:OUTVALUES {id: $cid}]->(c2:Commit) "
            "MERGE (l:Label {name: 'unknown'}) "
-           "MERGE (c1)-[r1:LABELED_WITH {comparison_id: $cid, email: $email}]->(l) "
+           "MERGE (c1)-[r1:LABELED_WITH {comparison_id: $cid, email: r.email}]->(l) "
            "SET r1.comment = $comment "
-           "MERGE (c2)-[r2:LABELED_WITH {comparison_id: $cid, email: $email}]->(l) "
+           "MERGE (c2)-[r2:LABELED_WITH {comparison_id: $cid, email: r.email}]->(l) "
            "SET r2.comment = $comment",
-           cid=comparison_id, comment=comment, email=email)
+           cid=comparison_id, comment=comment, token=token)
 
 
-def count_reviewed_relationships(tx, email):
-    result = tx.run("MATCH (c1:Commit)-[r:OUTVALUES]->(c2:Commit) "
-                    "WHERE (c1)-[:LABELED_WITH {email: $email}]->(:Label) "
-                    "AND (c2)-[:LABELED_WITH {email: $email}]->(:Label) "
-                    "RETURN count(r.id)", email=email)
+def count_reviewed_relationships(tx, token):
+    result = tx.run("MATCH (r:Reviewer {token: $token}) "
+                    "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
+                    "WHERE (c1)-[:LABELED_WITH {email: r.email}]->(:Label) "
+                    "AND (c2)-[:LABELED_WITH {email: r.email}]->(:Label) "
+                    "RETURN count(o.id)", token=token)
     return result.single()[0]

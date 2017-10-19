@@ -5,7 +5,8 @@ from database import *
 
 def main():
     pid = add_project('Hotot', 'https://github.com/lyricat/Hotot')
-    add_developer('Lyric Wai', 'w@persper.org')
+    developer = add_developer('Lyric Wai', 'w@persper.org')
+    reviewer = add_reviewer('jinglei@persper.org')
 
     # Inputs the 1st pair of commits for test.
     # This is an out-of-order complicated path. See other pairs for reference.
@@ -16,38 +17,36 @@ def main():
     cid = add_comparison('b35414f93aa5caaff115791d4040271047df25b3',
                          '915330ffc269eed821d652292993ff75b717a66b',
                          'w@persper.org')
-    comp, c1, c2, n = next_comparison('w@persper.org')
+    comp, c1, c2, n = next_comparison(developer)
     assert comp['id'] == cid
     print('Answering:', n, comp['id'], c1['id'], c2['id'])
     add_answer(comparison_id=cid,
                valuable_commit='b35414f93aa5caaff115791d4040271047df25b3',
                reason='第二个 commit 是 disable a feature，第一个是优化体验。',
-               email='w@persper.org')
+               token=developer)
     add_commit(sha1_hex='b35414f93aa5caaff115791d4040271047df25b3',
                title='disable the position saving',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
                project_id=pid)
-    test, _, _, n_1 = next_comparison('w@persper.org')
+    test, _, _, n_1 = next_comparison(developer)
     assert test is None and n_1 == n + 1
 
-    cid, c1, c2, n = next_review(pid, 'jinglei@persper.org')
+    cid, c1, c2, n = next_review(pid, reviewer)
     assert cid == comp['id']
     selected = c1['id']
     if c1['id'] > c2['id']:
         c1, c2 = c2, c1
     print('Reviewing: ', n, cid, c1['id'], c2['id'], selected)
-    label_small = add_label('small', 'Builtin')
-    label_reduce_feature = add_label('reduce_feature')
-    label_improve_use = add_label('improve_use')
+    label_small = add_label('small', 'Builtin', reviewer)
+    label_reduce_feature = add_label('reduce_feature', 'Customized', reviewer)
+    label_improve_use = add_label('improve_use', 'Customized', reviewer)
     add_review(comparison_id=cid, commit_id=c1['id'],
-               label_ids=[label_small, label_improve_use],
-               email='jinglei@persper.org')
-    test, _, _, n_1 = next_review(pid, 'jinglei@persper.org')
+               label_ids=[label_small, label_improve_use], token=reviewer)
+    test, _, _, n_1 = next_review(pid, reviewer)
     assert test == cid and n_1 == n  # The current full review is not done yet.
     add_review(comparison_id=cid, commit_id=c2['id'],
-               label_ids=[label_reduce_feature],
-               email='jinglei@persper.org')
-    test, _, _, n_1 = next_review(pid, 'jinglei@persper.org')
+               label_ids=[label_reduce_feature], token=reviewer)
+    test, _, _, n_1 = next_review(pid, reviewer)
     assert test is None and n_1 == n + 1
 
     # Inputs the 2nd pair of commits for test.
@@ -76,25 +75,26 @@ def main():
                           '84e9c84b6bfa6c51caaa402248bcc5b60b713668',
                           'w@persper.org')
 
-    comp_tmp, _, _, n_tmp = next_comparison('w@persper.org')
-    comp, c1, c2, n = next_comparison('w@persper.org')
+    comp_tmp, _, _, n_tmp = next_comparison(developer)
+    comp, c1, c2, n = next_comparison(developer)
     assert comp['id'] == comp_tmp['id'] and n == n_tmp
     print('Answering: ', n, comp['id'], c1['id'], c2['id'])
     add_answer(comparison_id=cid3, valuable_commit='84e9c84b6bfa6c51caaa402248bcc5b60b713668',
-               reason='B is a small refactor; A is to notify errors.', email='w@persper.org')
+               reason='B is a small refactor; A is to notify errors.',
+               token=developer)
 
-    comp, c1, c2, n = next_comparison('w@persper.org')
+    comp, c1, c2, n = next_comparison(developer)
     assert comp['id'] == cid2 and n == n_tmp + 1
 
-    cid_tmp, _, _, n_tmp = next_review(pid, 'jinglei@persper.org')
-    cid, c1, c2, n = next_review(pid, 'jinglei@persper.org')
+    cid_tmp, _, _, n_tmp = next_review(pid, reviewer)
+    cid, c1, c2, n = next_review(pid, reviewer)
     assert cid == cid_tmp and n == n_tmp
-    add_comment(cid, 'TODO', 'jinglei@persper.org')
+    add_comment(cid, 'TODO', reviewer)
 
-    test, _, _, n = next_review(pid, 'jinglei@persper.org')
+    test, _, _, n = next_review(pid, reviewer)
     assert test is None and n == n_tmp + 1
 
-    builtin, customized = list_labels()
+    builtin, customized = list_labels(reviewer)
     print(builtin, customized)
 
     # Inputs the 4th pair of commits for test.

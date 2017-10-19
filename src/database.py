@@ -3,6 +3,7 @@ from os.path import isfile
 from os.path import join
 from os import listdir
 import random
+import secrets
 
 from neo4j.v1 import basic_auth
 from neo4j.v1 import GraphDatabase
@@ -60,8 +61,22 @@ def add_developer(name, email):
     if not _driver:
         init_driver()
     try:
+        token = secrets.token_urlsafe()
         _driver.session().write_transaction(
-            query.create_developer_email, name, email)
+            query.create_developer_email, name, email, token)
+        return token
+    except Exception as e:
+        print(e)
+
+
+def add_reviewer(email):
+    if not _driver:
+        init_driver()
+    try:
+        token = secrets.token_urlsafe()
+        _driver.session().write_transaction(
+            query.create_reviewer_node, email, token)
+        return token
     except Exception as e:
         print(e)
 
@@ -94,27 +109,27 @@ def add_comparison(commit1, commit2, email):
         print(e)
 
 
-def next_comparison(email):
+def next_comparison(token):
     if not _driver:
         init_driver()
     n = -1
     try:
         n = _driver.session().read_transaction(
-            query.count_compared_relationships, email)
+            query.count_compared_relationships, token)
         comparison, commit1, commit2 = _driver.session().read_transaction(
-            query.next_comparison_node, email)
+            query.next_comparison_node, token)
         return comparison, commit1, commit2, n
     except Exception as e:
         print(e)
         return None, None, None, n
 
 
-def add_answer(*, comparison_id, valuable_commit, reason, email):
+def add_answer(*, comparison_id, valuable_commit, reason, token):
     if not _driver:
         init_driver()
     try:
         tx = _driver.session().begin_transaction()
-        c1, c2 = query.delete_comparison_node(tx, comparison_id)
+        c1, c2 = query.delete_comparison_node(tx, comparison_id, token)
         if valuable_commit is None:
             tx.commit()
             return
@@ -122,46 +137,46 @@ def add_answer(*, comparison_id, valuable_commit, reason, email):
             c1, c2 = c2, c1
         assert c1 == valuable_commit
         query.create_compared_relationship(
-            tx, comparison_id, c1, c2, reason, email)
+            tx, comparison_id, c1, c2, reason, token)
         tx.commit()
     except Exception as e:
         print(e)
 
 
-def next_review(project_id, email):
+def next_review(project_id, token):
     if not _driver:
         init_driver()
     n = -1
     try:
         n = _driver.session().read_transaction(
-            query.count_reviewed_relationships, email)
+            query.count_reviewed_relationships, token)
         comparison_id, commit1, commit2 = _driver.session().read_transaction(
-            query.next_compared_relationship, project_id)
+            query.next_compared_relationship, project_id, token)
         return comparison_id, commit1, commit2, n
     except Exception as e:
         print(e)
         return None, None, None, n
 
 
-def add_label(name, genre='Customized'):
+def add_label(name, genre, token):
     if not _driver:
         init_driver()
     lid = sha1(name.encode('utf-8')).hexdigest()
     try:
         res_lid = _driver.session().write_transaction(
-            query.create_label_node, lid, name, genre)
+            query.create_label_node, lid, name, genre, token)
         assert res_lid == lid
         return lid
     except Exception as e:
         print(e)
 
 
-def list_labels():
+def list_labels(token):
     if not _driver:
         init_driver()
     try:
         rec_builtin, rec_custom = _driver.session().read_transaction(
-            query.list_label_nodes)
+            query.list_label_nodes, token)
         builtin = [{'id': r['label']['id'], 'name': r['label']['name']}
                    for r in rec_builtin]
         custom = [{'id': r['label']['id'], 'name': r['label']['name']}
@@ -172,22 +187,22 @@ def list_labels():
         return None, None
 
 
-def add_review(*, comparison_id, commit_id, label_ids, email):
+def add_review(*, comparison_id, commit_id, label_ids, token):
     if not _driver:
         init_driver()
     try:
         _driver.session().write_transaction(
             query.create_label_relationship,
-            comparison_id, commit_id, label_ids, email)
+            comparison_id, commit_id, label_ids, token)
     except Exception as e:
         print(e)
 
 
-def add_comment(comparison_id, comment, email):
+def add_comment(comparison_id, comment, token):
     if not _driver:
         init_driver()
     try:
         _driver.session().write_transaction(
-            query.create_comment_relationship, comparison_id, comment, email)
+            query.create_comment_relationship, comparison_id, comment, token)
     except Exception as e:
         print(e)
