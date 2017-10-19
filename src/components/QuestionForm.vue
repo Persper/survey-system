@@ -15,20 +15,22 @@
       </div>
     </div>
     <div v-else>
-      Loading...
+      <loader class="loader"></loader>
     </div>
   </div>
 </template>
 
 <script>
+import ScaleLoader from 'vue-spinner/src/ScaleLoader.vue'
 import Option from '@/components/Option'
 // import Config from '@/config'
 export default {
   name: 'QuestionForm',
   components: {
+    'loader': ScaleLoader,
     'survey-option': Option
   },
-  props: ['question'],
+  props: ['question', 'count'],
   data () {
     return {
       questionTitle: 'Which of the following two commits do you think is more valuable to the development of your project?',
@@ -60,6 +62,10 @@ export default {
         this.comment = ''
         this.selectedOption = 0
       }
+    },
+    count: function (a, b) {
+      this.$data.selectedOption = 0
+      this.$data.comment = ''
     }
   },
   methods: {
@@ -79,6 +85,10 @@ export default {
 </script>
 
 <style scoped>
+.loader {
+  margin: 10px auto;
+  text-align: center;
+}
 .question {
   font-size: 20px;
   margin-bottom: 20px;
