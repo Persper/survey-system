@@ -4,11 +4,15 @@ import argparse
 from pprint import pprint
 import requests
 
+# The following tokens should be replaced every time the test database is reset.
+developer_token = ''
+reviewer_token = ''
+
 
 def test_next_question(address, project_id):
     url = '%s/survey/v1/projects/%s/questions/next' % (address, project_id)
     print('Next question: ' + url)
-    headers = {'X-USR-TOKEN': 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'}
+    headers = {'X-USR-TOKEN': developer_token}
     r = requests.get(url, headers=headers)
     if r.ok:
         pprint(r.json())
@@ -24,7 +28,7 @@ def test_submit_answer(address, project_id, question_id, selected, reason):
     url = '%s/survey/v1/projects/%s/questions/%s' % (
         address, project_id, question_id)
     print('Submit answer: ' + url)
-    headers = {'X-USR-TOKEN': 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'}
+    headers = {'X-USR-TOKEN': developer_token}
     payload = {'selected': selected, 'reason': reason}
     r = requests.post(url, headers=headers, json=payload)
     if r.ok:
@@ -36,7 +40,7 @@ def test_submit_answer(address, project_id, question_id, selected, reason):
 def test_next_review(address, project_id):
     url = '%s/survey/v1/projects/%s/reviews/next' % (address, project_id)
     print('Next review: ' + url)
-    headers = {'X-USR-TOKEN': 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'}
+    headers = {'X-USR-TOKEN': reviewer_token}
     r = requests.get(url, headers=headers)
     if r.ok:
         pprint(r.json())
@@ -52,7 +56,7 @@ def test_submit_review(address, project_id, review_id, **kwargs):
     url = '%s/survey/v1/projects/%s/reviews/%s' % (
         address, project_id, review_id)
     print('Submit review: ' + url)
-    headers = {'X-USR-TOKEN': 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'}
+    headers = {'X-USR-TOKEN': reviewer_token}
     payload = {}
     commit_labels = kwargs.get('commit_labels')
     if commit_labels is not None:
@@ -70,7 +74,7 @@ def test_submit_review(address, project_id, review_id, **kwargs):
 def test_get_labels(address, project_id):
     url = '%s/survey/v1/projects/%s/labels' % (address, project_id)
     print('Get labels: ' + url)
-    headers = {'X-USR-TOKEN': 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38'}
+    headers = {'X-USR-TOKEN': reviewer_token}
     r = requests.get(url, headers=headers)
     if r.ok:
         pprint(r.json())

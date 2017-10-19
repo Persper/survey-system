@@ -36,13 +36,14 @@ def commit_url(project_url, commit_id):
 
 @app.route('/survey/v1/projects/<project_id>/questions/next', methods=['GET'])
 def next_question(project_id):
-    if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
+    token = request.headers.get('X-USR-TOKEN')
+    if token is None:
         abort(403)
     project = database.get_project(project_id)
     if project is None:
         return jsonify(STATUS_BAD_REQUEST)
 
-    comp, c1, c2, n = database.next_comparison('w@persper.org')  # TODO
+    comp, c1, c2, n = database.next_comparison(token)
     if comp is None:
         return jsonify(STATUS_END)
     commit1 = {'id': c1['id'], 'title': c1['title'],
@@ -57,7 +58,8 @@ def next_question(project_id):
 
 @app.route('/survey/v1/projects/<project_id>/questions/<question_id>', methods=['POST'])
 def submit_answer(project_id, question_id):
-    if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
+    token = request.headers.get('X-USR-TOKEN')
+    if token is None:
         abort(403)
     if not request.json:
         return jsonify(STATUS_REQ_JSON)
@@ -75,19 +77,20 @@ def submit_answer(project_id, question_id):
         if not reason:
             return jsonify(STATUS_BAD_REQUEST)
     database.add_answer(comparison_id=question_id, valuable_commit=selected,
-                        reason=reason, email='w@persper.org')   # TODO
+                        reason=reason, token=token)
     return jsonify({'status': 0})
 
 
 @app.route('/survey/v1/projects/<project_id>/reviews/next', methods=['GET'])
 def next_review(project_id):
-    if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
+    token = request.headers.get('X-USR-TOKEN')
+    if token is None:
         abort(403)
     project = database.get_project(project_id)
     if project is None:
         return jsonify(STATUS_BAD_REQUEST)
 
-    cid, c1, c2, n = database.next_review(project_id, 'jinglei@persper.org')  # TODO
+    cid, c1, c2, n = database.next_review(project_id, token)
     if cid is None:
         return jsonify(STATUS_END)
     review = {'id': cid, 'type': 'single', 'selected': c1['id'], 'reviewed': n}
@@ -104,7 +107,8 @@ def next_review(project_id):
 
 @app.route('/survey/v1/projects/<project_id>/reviews/<review_id>', methods=['POST'])
 def submit_review(project_id, review_id):
-    if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
+    token = request.headers.get('X-USR-TOKEN')
+    if token is None:
         abort(403)
     if not request.json:
         return jsonify(STATUS_REQ_JSON)
@@ -116,7 +120,7 @@ def submit_review(project_id, review_id):
     if not comment and not commit_labels:
         return jsonify(STATUS_BAD_REQUEST)
     if comment:
-        database.add_comment(review_id, comment, 'jinglei@persper.org')  # TODO
+        database.add_comment(review_id, comment, token)
         return jsonify({'status': 0})
     commit2labels = dict()
     new_labels = []
@@ -132,7 +136,7 @@ def submit_review(project_id, review_id):
             continue
         label_name = label.get('labelName')
         if label_name:
-            label_id = database.add_label(label_name)
+            label_id = database.add_label(label_name, 'Customized', token)
             new_labels.append({'label': {'id': label_id, 'name': label_name}})
             commit2labels[commit_id].append(label_id)
             continue
@@ -140,19 +144,19 @@ def submit_review(project_id, review_id):
     for commit_id, label_ids in commit2labels.items():
         print(label_ids)
         database.add_review(comparison_id=review_id, commit_id=commit_id,
-                            label_ids=label_ids,
-                            email='jinglei@persper.org')  # TODO
+                            label_ids=label_ids, token=token)
     return jsonify({'status': 0, 'data': new_labels})
 
 
 @app.route('/survey/v1/projects/<project_id>/labels', methods=['GET'])
 def labels(project_id):
-    if request.headers.get('X-USR-TOKEN') != 'tqxe2wmETskTsWq6t_MZwaUdzm8HY3Cqvahg-R-oR38':
+    token = request.headers.get('X-USR-TOKEN')
+    if token is None:
         abort(403)
     if not check_sha1(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
-    builtin, customized = database.list_labels()
+    builtin, customized = database.list_labels(token)
 
     return jsonify({'status': 0,
                     'data': {'builtin': builtin, 'customized': customized}})
