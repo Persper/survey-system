@@ -14,41 +14,39 @@
       </div>
       <hr/>
       <div class="summary">
-        <div>
+        <p>
+        <span>
           <span>A</span>
           <select v-model="betterLabel1">
             <option disabled selected value="0"> -- select -- </option>
-            <option value="1">tiny</option>
-            <option value="2">small</option>
+            <option v-for="label in labels.builtin" :value="label.id">{{label.name}}</option>
           </select>
           <select v-model="betterLabel2">
             <option disabled selected value="0"> -- select -- </option>
-            <option value="3">feature</option>
-            <option value="4">bug fix</option>
+            <option v-for="label in labels.customized" :value="label.id">{{label.name}}</option>
             <option value="-1">custom</option>
           </select>
           <span v-if="newLabel1Enabled">(my label: 
           <input v-model="newLabel1" class="new-label" placeholder="new label"  />
           )</span>
-        </div>
-        <div>is more valuable than</div>
-        <div>
+        </span>
+        <span>is more valuable than</span>
+        <span>
           <span>a</span>
           <select v-model="worseLabel1">
             <option disabled selected value="0"> -- select -- </option>
-            <option value="1">tiny</option>
-            <option value="2">small</option>
+            <option v-for="label in labels.builtin" :value="label.id">{{label.name}}</option>
           </select>
           <select v-model="worseLabel2">
             <option disabled selected value="0"> -- select -- </option>
-            <option value="3">feature</option>
-            <option value="4">bug fix</option>
+            <option v-for="label in labels.customized" :value="label.id">{{label.name}}</option>
             <option value="-1">custom</option>
           </select>
           <span v-if="newLabel2Enabled" >(my label: 
           <input v-model="newLabel2" class="new-label" placeholder="new label"/>
           )</span>
-        </div>
+        </span>
+        </p>
         <div>If no such rule can be derived from the fact, leave a comment:</div>
         <textarea v-model="comment" class="comment-area"></textarea>
       </div>
@@ -59,18 +57,20 @@
     </div>
   </div>
   <div v-else>
-    Loading ...
+    <loader class="loader"></loader>
   </div>
 </template>
 
 <script>
+import ScaleLoader from 'vue-spinner/src/ScaleLoader.vue'
 import Option from '@/components/Option'
 export default {
   name: 'ReviewForm',
   components: {
+    'loader': ScaleLoader,
     'survey-option': Option
   },
-  props: ['review'],
+  props: ['review', 'labels', 'count'],
   computed: {
     selectedId: function () {
       return this.review.selected
@@ -123,6 +123,18 @@ export default {
       return []
     }
   },
+  watch: {
+    watchCount: function (a, b) {
+      this.$data.selectedOption = 0
+      this.$data.betterLabel1 = 0
+      this.$data.betterLabel2 = 0
+      this.$data.worseLabel1 = 0
+      this.$data.worseLabel2 = 0
+      this.$data.newLabel1 = ''
+      this.$data.newLabel2 = ''
+      this.$data.comment = ''
+    }
+  },
   data () {
     return {
       reason: '',
@@ -140,12 +152,12 @@ export default {
     saveButtonClicked: function (event) {
       let payload = {
         'commitLabels': [
-          {labelID: this.$data.betterLabel1, commitID: this.selectedId},
-          {labelID: this.$data.betterLabel2, commitID: this.selectedId},
-          {labelID: this.$data.worseLabel1, commitID: this.notSelectedId},
-          {labelID: this.$data.worseLabel2, commitID: this.notSelectedId}
+          {labelId: this.$data.betterLabel1, commitId: this.selectedId},
+          {labelId: this.$data.betterLabel2, commitId: this.selectedId},
+          {labelId: this.$data.worseLabel1, commitId: this.notSelectedId},
+          {labelId: this.$data.worseLabel2, commitId: this.notSelectedId}
         ],
-        reason: this.$data.comment
+        'comment': this.$data.comment
       }
       if (this.$data.betterLabel2 === '-1') {
         payload['commitLabels'][1].labelName = this.$data.newLabel1

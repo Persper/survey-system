@@ -1,7 +1,10 @@
 <template>
   <div class="review">
     <wireframe>
-      <review-form :review="reviewObject" v-on:result="fetchResult"/>
+      <div v-if="isCompleted">
+        {{completedHint}}
+      </div>
+      <review-form v-else :review="reviewObject" :labels="labels" :count="count" v-on:result="fetchResult"/>
     </wireframe>
   </div>
 </template>
@@ -9,16 +12,26 @@
 <script>
 import Wireframe from '@/components/Wireframe'
 import ReviewForm from '@/components/ReviewForm'
+import Storage from '@/mixins/storage'
 import Config from '@/config'
+
 export default {
   name: 'ReviewView',
+  mixins: [Storage],
   components: {
     'wireframe': Wireframe,
     'review-form': ReviewForm
   },
   data () {
     return {
-      reviewObject: null
+      isCompleted: false,
+      completedHint: '...',
+      count: 0,
+      reviewObject: null,
+      labels: {
+        builtin: [],
+        customized: []
+      }
     }
   },
   methods: {
@@ -26,7 +39,13 @@ export default {
       let url = Config.API_BASE + `/projects/${this.$route.params.projectId}/reviews/next`
       this.$http.get(url).then(function (response) {
         console.log('reload items')
-        this.reviewObject = response.body.data.review
+        if (response.body.status === 100) {
+          this.isCompleted = true
+          this.completedHint = response.body.message
+        } else {
+          this.reviewObject = response.body.data.review
+        }
+        this.count += 1
       }, function (response) {
         alert('failed to reload, try later.')
       })
@@ -39,16 +58,28 @@ export default {
       }, function (response) {
         alert('failed to save, try later.')
       })
+    },
+    loadLabels: function () {
+      let url = Config.API_BASE + `/projects/${this.$route.params.projectId}/labels`
+      this.$http.get(url).then(function (response) {
+        console.log('reload labels', response.body.data)
+        this.labels = response.body.data
+      }, function (response) {
+        alert('failed to reload, try later.')
+      })
     }
   },
   created: function () {
-    let url = Config.API_BASE + `/projects/${this.$route.params.projectId}/reviews/next`
-    this.$http.get(url).then(function (response) {
-      console.log('load items', response.body.data.review)
-      this.reviewObject = response.body.data.review
-    }, function (response) {
-      alert('failed to reload, try later.')
-    })
+    this.loadToken()
+    this.loadLabels()
+    this.reload()
+    // let url = Config.API_BASE + `/projects/${this.$route.params.projectId}/reviews/next`
+    // this.$http.get(url).then(function (response) {
+    //   console.log('load items', response.body.data.review)
+    //   this.reviewObject = response.body.data.review
+    // }, function (response) {
+    //   alert('failed to reload, try later.')
+    // })
   }
 }
 </script>

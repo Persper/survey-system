@@ -7,6 +7,9 @@
       <div v-if="item.id !== -1 && item.id !== -2">
         {{optionLabel}}
       </div>
+      <div v-else>
+        OBJECTION
+      </div>
       <div class="option-displayed-id">{{item.displayedId}}</div>
     </div>
     <div class="option-body">
