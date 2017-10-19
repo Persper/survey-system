@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import VueDoc from '@/components/VueDoc'
 import Main from '@/components/Main'
+import Entry from '@/components/Entry'
 import QuestionView from '@/components/QuestionView'
 import ReviewView from '@/components/ReviewView'
 
@@ -15,9 +15,9 @@ export default new Router({
       component: Main
     },
     {
-      path: '/vue',
-      name: 'Vue',
-      component: VueDoc
+      path: '/entry/:token',
+      name: 'Entry',
+      component: Entry
     },
     {
       path: '/projects/:projectId/questions',
