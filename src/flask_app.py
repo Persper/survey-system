@@ -1,5 +1,4 @@
 import re
-from urllib.parse import urljoin
 
 from flask import abort
 from flask import Flask
@@ -30,8 +29,14 @@ def version():
 
 
 def commit_url(project_url, commit_id):
-    if 'github' in project_url.lower():
-        return urljoin(project_url, '/commit/') + commit_id
+    match = re.match(r'git@github.com:(.+)/(.+).git', project_url)
+    if match is None:
+        match = re.match(r'http[s]?://github.com/(.+)/([^\.]+)(?:\.git)?',
+                         project_url)
+    if match is None:
+        raise ValueError('Repository URL not recognized')
+    return 'https://github.com/%s/%s/commit/%s' % (
+        match.group(1), match.group(2), commit_id)
 
 
 @app.route('/survey/v1/projects/<project_id>/questions/next', methods=['GET'])
