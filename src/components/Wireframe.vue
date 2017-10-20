@@ -27,15 +27,16 @@ export default {
   border-radius: 2px;
   background: white;
   width: 600px;
-  height: 500px;
+  min-height: 400px;
   margin: 40px auto 0 auto;
   line-height: 1.4;
   font-size: 16px;
   padding: 20px 40px;
   text-align: left;
+  position: relative;
 }
 .loader-mask {
-  position: fixed;
+  position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
@@ -54,7 +55,7 @@ export default {
   width: 120px;
   height: 40px;
   margin-left: -60px;
-  margin-top: 50px;
+  margin-top: -50px;
   z-index: 100;
 }
 </style>

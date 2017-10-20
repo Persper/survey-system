@@ -26,9 +26,9 @@
             <option v-for="label in labels.customized" :value="label.id">{{label.name}}</option>
             <option value="-1">custom</option>
           </select>
-          <span v-if="newLabel1Enabled">(my label: 
-          <input v-model="newLabel1" class="new-label" placeholder="new label"  />
-          )</span>
+          <span v-if="newLabel1Enabled">
+            <input v-model="newLabel1" class="new-label" placeholder="new label"  />
+          </span>
         </span>
         <span>is more valuable than</span>
         <span>
@@ -42,9 +42,9 @@
             <option v-for="label in labels.customized" :value="label.id">{{label.name}}</option>
             <option value="-1">custom</option>
           </select>
-          <span v-if="newLabel2Enabled" >(my label: 
-          <input v-model="newLabel2" class="new-label" placeholder="new label"/>
-          )</span>
+          <span v-if="newLabel2Enabled" >
+            <input v-model="newLabel2" class="new-label" placeholder="new label"/>
+          </span>
         </span>
         </p>
         <div>If no such rule can be derived from the fact, leave a comment:</div>
@@ -156,15 +156,17 @@ export default {
       }
       if (this.$data.betterLabel2 === '-1') {
         payload['commitLabels'][1].labelName = this.$data.newLabel1
+        delete payload['commitLabels'][1].labelId
       }
       if (this.$data.worseLabel2 === '-1') {
         payload['commitLabels'][3].labelName = this.$data.newLabel2
+        delete payload['commitLabels'][3].labelId
       }
       console.log('save button clicked, selected option id =', payload)
       this.$emit('result', payload)
     },
     quitButtonClicked: function (event) {
-      console.log('quit button clicked')
+      alert('close the window and leave.')
     }
   }
 }

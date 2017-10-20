@@ -1,7 +1,7 @@
 <template>
   <label class="option" v-bind:class="{ selected: selectedId === item.id }"> 
     <input v-if="!static" type="radio" :value="item.id" :name="name"
-      v-on:change="updateValue($event)"
+      v-on:change="updateValue($event)" :checked="selectedId === item.id"
     />
     <div v-else class="option-label">
       <div v-if="item.id !== -1 && item.id !== -2">
@@ -38,7 +38,7 @@ export default {
 <style scoped>
 .option {
   display: flex;
-  height: 44px;
+  min-height: 44px;
   padding: 4px 8px;
   border-radius: 4px;
 }

@@ -52,15 +52,10 @@ export default {
     }
   },
   watch: {
-    options: function (oldValue, newValue) {
-      if (oldValue.id !== newValue.id) {
-        this.comment = ''
-        this.selectedOption = 0
-      }
-    },
     count: function (a, b) {
-      this.$data.selectedOption = 0
-      this.$data.comment = ''
+      this.selectedOption = 0
+      this.comment = ''
+      console.log('reset form', this.selectedOption)
     }
   },
   methods: {
@@ -72,8 +67,7 @@ export default {
       this.$emit('result', payload)
     },
     quitButtonClicked: function (event) {
-      // @TODO logic to reset form.
-      console.log('quit button clicked')
+      alert('close the window and leave.')
     }
   }
 }
