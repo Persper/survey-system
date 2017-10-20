@@ -1,18 +1,15 @@
 <template>
   <div class="main">
-    <h2>Paste your token here and click the link below</h2>
+    <h2>Paste your project id and token here</h2>
     <p>
+      <input class="project-input" placeholder="project Id here." v-model="project" />
       <input class="token-input" placeholder="token here." v-model="token" />
-      <button class="token-button" v-on:click="tokenButtonClick">Use this token</button>
     </p>
-    <ul>
-      <li>
-        <router-link to="/projects/de65f79e6f3391866ab4d68cbebeee1bcdc859f0/questions">Go to questions view</router-link>,
-      </li>
-      <li>
-        <router-link to="/projects/de65f79e6f3391866ab4d68cbebeee1bcdc859f0/reviews">Go to review view</router-link>
-      </li>
-    </ul>
+    <p>
+      <button class="button" v-on:click="gotoQuestionView">Anwser Questions</button>
+      or
+      <button class="button" v-on:click="gotoReviewVuew">Review Questions</button>
+    </p>
   </div>
 </template>
 
@@ -23,15 +20,21 @@ export default {
   mixins: [Storage],
   data () {
     return {
-      // token: 'eA-eVprwiID0FlOfTpkFIP8BRIMz1VmLaNs6r-6Aq34'
-      token: '-sByKwtRLkb9O6nsYhs29j-muE4pT-TwLcYyC3HJSPY'
+      token: '',
+      project: ''
     }
   },
   methods: {
-    tokenButtonClick: function (evt) {
+    gotoQuestionView: function (evt) {
       this.saveToken(this.token)
       Vue.http.headers.common['X-USR-TOKEN'] = this.token
+      this.$router.push({name: 'QuestionView', params: {projectId: this.project}})
       return
+    },
+    gotoReviewVuew: function (evt) {
+      this.saveToken(this.token)
+      Vue.http.headers.common['X-USR-TOKEN'] = this.token
+      this.$router.push({name: 'ReviewView', params: {projectId: this.project}})
     }
   }
 
@@ -42,12 +45,12 @@ export default {
 a {
   color: #aaf;
 }
-.token-input {
+.project-input, .token-input {
   width: 400px;
   height: 30px;
   font-size: 18px;
 }
-.token-button {
+.button {
   height: 30px;
 }
 .main {
