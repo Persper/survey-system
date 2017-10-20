@@ -14,20 +14,15 @@
         <button class="save-button" v-on:click="saveButtonClicked" :disabled="selectedOption === 0 || comment.trim().length === 0">Save & Continue</button>
       </div>
     </div>
-    <div v-else>
-      <loader class="loader"></loader>
-    </div>
   </div>
 </template>
 
 <script>
-import ScaleLoader from 'vue-spinner/src/ScaleLoader.vue'
 import Option from '@/components/Option'
 // import Config from '@/config'
 export default {
   name: 'QuestionForm',
   components: {
-    'loader': ScaleLoader,
     'survey-option': Option
   },
   props: ['question', 'count'],

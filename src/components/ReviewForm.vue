@@ -56,18 +56,13 @@
       </div>
     </div>
   </div>
-  <div v-else>
-    <loader class="loader"></loader>
-  </div>
 </template>
 
 <script>
-import ScaleLoader from 'vue-spinner/src/ScaleLoader.vue'
 import Option from '@/components/Option'
 export default {
   name: 'ReviewForm',
   components: {
-    'loader': ScaleLoader,
     'survey-option': Option
   },
   props: ['review', 'labels', 'count'],
@@ -124,7 +119,7 @@ export default {
     }
   },
   watch: {
-    watchCount: function (a, b) {
+    count: function (a, b) {
       this.$data.selectedOption = 0
       this.$data.betterLabel1 = 0
       this.$data.betterLabel2 = 0
