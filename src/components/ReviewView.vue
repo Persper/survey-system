@@ -39,8 +39,8 @@ export default {
     reload: function () {
       let url = Config.API_BASE + `/projects/${this.$route.params.projectId}/reviews/next`
       this.$http.get(url).then(function (response) {
-        console.log('reload items')
-        if (response.body.status === 100) {
+        // @TODO need to refactor, request and response handling should move to requests mixin
+        if (response.body.status !== 0) {
           this.isCompleted = true
           this.completedHint = response.body.message
         } else {

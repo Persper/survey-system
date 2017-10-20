@@ -36,7 +36,7 @@ export default {
       let url = Config.API_BASE + `/projects/${this.$route.params.projectId}/questions/next`
       this.$http.get(url).then(function (response) {
         console.log('reload items')
-        if (response.body.status === 100) {
+        if (response.body.status !== 0) {
           this.isCompleted = true
           this.completedHint = response.body.message
         } else {
@@ -55,7 +55,6 @@ export default {
       // prepared, send data
       this.$http.post(url, result).then(function (response) {
         this.reload()
-        this.count += 1
       }, function (response) {
         alert('failed to save, try later.')
       })
