@@ -36,7 +36,7 @@ def link_project_commit(tx, commit_id, project_id):
 
 def link_commit_author(tx, commit_id, email):
     tx.run("MATCH (c:Commit {id: $commit_id}) "
-           "MATCH (e:Email {email: $email}) "
+           "MERGE (e:Email {email: $email}) "
            "MERGE (e)-[:AUTHORS]->(c)",
            commit_id=commit_id, email=email)
 

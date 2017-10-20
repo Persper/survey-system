@@ -85,7 +85,6 @@ def add_commit(*, sha1_hex, title, author, email, project_id):
     if not _driver:
         init_driver()
     try:
-        add_developer(author, email)
         tx = _driver.session().begin_transaction()
         query.create_commit_node(tx, sha1_hex, title)
         query.link_commit_author(tx, sha1_hex, email)
