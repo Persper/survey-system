@@ -1,6 +1,6 @@
 <template>
   <div class="review">
-    <wireframe>
+    <wireframe :isLoading="isLoading">
       <div v-if="isCompleted">
         {{completedHint}}
       </div>
@@ -26,6 +26,7 @@ export default {
     return {
       isCompleted: false,
       completedHint: '...',
+      isLoading: false,
       count: 0,
       reviewObject: null,
       labels: {
@@ -46,14 +47,17 @@ export default {
           this.reviewObject = response.body.data.review
         }
         this.count += 1
+        this.isLoading = false
       }, function (response) {
         alert('failed to reload, try later.')
       })
     },
     fetchResult: function (result) {
+      this.isLoading = true
       console.log('result =', result)
       let url = Config.API_BASE + `/projects/${this.$route.params.projectId}/reviews/${this.reviewObject.id}`
       this.$http.post(url, result).then(function (response) {
+        this.loadLabels()
         this.reload()
       }, function (response) {
         alert('failed to save, try later.')
@@ -70,6 +74,7 @@ export default {
     }
   },
   created: function () {
+    this.isLoading = true
     this.loadToken()
     this.loadLabels()
     this.reload()
