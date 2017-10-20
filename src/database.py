@@ -69,6 +69,16 @@ def add_developer(name, email):
         print(e)
 
 
+def get_developer_token(email):
+    if not _driver:
+        init_driver()
+    try:
+        return _driver.session().read_transaction(
+            query.get_developer_token, email)
+    except Exception as e:
+        print(e)
+
+
 def add_reviewer(email):
     if not _driver:
         init_driver()

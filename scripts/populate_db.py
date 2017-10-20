@@ -39,6 +39,11 @@ def check(n, m):
         check_one_author(email, comparisons, n, m)
 
 
+def compose_url(token, project_id):
+    return 'http://survey.persper.org/#/entry/%s?project=%s' % (
+        token, project_id)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Populate database with commits')
@@ -78,7 +83,10 @@ def main():
             email2commits[email].append(commit)
 
     for e, author in enumerate(args.emails):
-        print('Populating selected commits by ' + author)
+        token = database.get_developer_token(author)
+        if token is None:
+            token = database.add_developer(email.split('@')[0], email)
+        print(author, compose_url(token, project_id))
         selected = random.sample(email2commits[author], args.n)
         for i in range(-1, args.n - 1):
             c1 = selected[i]
@@ -118,8 +126,6 @@ def main():
                 [c1.author.email, c1.hexsha, c2.hexsha])
 
     check(args.n, args.m)
-    url_header = 'http://survey.persper.org/berkeley-cs169/index.html?id='
-    print('Survey URL: ' + url_header + project_id)
 
 
 if __name__ == '__main__':
