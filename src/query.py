@@ -21,6 +21,12 @@ def create_developer_email(tx, name, email, token):
            email=email, name=name, token=token)
 
 
+def get_developer_token(tx, email):
+    result = tx.run("MATCH (e:Email {email: $email}) "
+                    "RETURN e.token", email=email)
+    return result.single()[0]
+
+
 def create_commit_node(tx, sha1_hex, title):
     tx.run("MERGE (c:Commit {id: $sha1_hex}) "
            "SET c.title = $title",
