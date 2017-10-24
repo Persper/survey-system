@@ -87,7 +87,8 @@ def main():
         if token is None:
             token = database.add_developer(email.split('@')[0], email)
         print(author, compose_url(token, project_id))
-        selected = random.sample(email2commits[author], args.n)
+        selected = random.sample(email2commits[author],
+                                 min(args.n, len(email2commits[author])))
         for i in range(-1, args.n - 1):
             c1 = selected[i]
             c2 = selected[i + 1]
