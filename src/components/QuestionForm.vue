@@ -29,7 +29,7 @@ export default {
   data () {
     return {
       questionTitle: 'Which of the following two commits do you think is more valuable to the development of your project?',
-      reasonLabel: 'Please explain the above answer (in English or Chinese). Think about both commit-specific reasons and commit-independent factors that may indicate your choice.',
+      reasonLabel: 'Please explain the above answer. Think about both commit-specific reasons and commit-independent factors that may indicate your choice.',
       selectedOption: 0,
       comment: ''
     }
