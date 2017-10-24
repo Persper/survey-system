@@ -14,7 +14,7 @@
     </div>
     <div class="option-body">
       <div class="option-text">{{ item.text }}</div>
-      <div v-if="item.link" ><a class="option-link" :href="item.link">{{item.link}}</a></div>
+      <div v-if="item.link" ><a class="option-link" :href="item.link" target="_blank">{{item.link}}</a></div>
     </div>
   </label> 
 </template>
