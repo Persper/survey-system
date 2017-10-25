@@ -157,3 +157,9 @@ def count_reviewed_relationships(tx, token):
                     "AND (c2)-[:LABELED_WITH {email: r.email}]->(:Label) "
                     "RETURN count(o.id)", token=token)
     return result.single()[0]
+
+
+def list_email_project(tx):
+    result = tx.run("MATCH (e:Email)-[:AUTHORS]->(:Commit)-[:COMMITTED_TO]->(p:Project) "
+                    "RETURN DISTINCT e.email AS email, e.token AS token, p.id AS project")
+    return result.records()

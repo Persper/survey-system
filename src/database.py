@@ -215,3 +215,12 @@ def add_comment(comparison_id, comment, token):
             query.create_comment_relationship, comparison_id, comment, token)
     except Exception as e:
         print(e)
+
+
+def list_email_project():
+    if not _driver:
+        init_driver()
+    try:
+        return _driver.session().read_transaction(query.list_email_project)
+    except Exception as e:
+        print(e)
