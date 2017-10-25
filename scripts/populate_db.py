@@ -44,6 +44,16 @@ def compose_url(token, project_id):
         token, project_id)
 
 
+def parse_repo_url(remote_url):
+    match = re.match(r'git@github.com:(.+)/(.+).git', remote_url)
+    if match is None:
+        match = re.match(r'http[s]?://github.com/(.+)/([^\.]+)(?:\.git)?',
+                         remote_url)
+    if match is None:
+        raise ValueError('Repository URL not recognized')
+    return match.group(1), match.group(2)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Populate database with commits')
@@ -70,7 +80,7 @@ def main():
     repo = git.Repo(args.repo_dir)
 
     project_url = repo.remotes.origin.url
-    user_name, repo_name = re.split('[/:.]', project_url)[-3:-1]
+    user_name, repo_name = parse_repo_url(project_url)
     project_name = '%s-%s' % (user_name, repo_name)
     project_id = database.add_project(project_name, project_url)
 
