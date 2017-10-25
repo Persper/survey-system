@@ -31,7 +31,10 @@ def check_one_author(email, comparisons, n, m):
             check_n.add(check_comparison_id(c1, c2))
         else:
             check_m.add(check_comparison_id(c1, c2))
-    assert len(check_n) == n and len(check_m) == m
+    assert len(check_n) <= n and len(check_m) == m
+    if len(check_n) < n:
+        print('WARN: %s is assigned with less self-comparisons than n! '
+              '(Check if this developer makes less commits than n.)' % email)
 
 
 def check(n, m):
@@ -99,7 +102,7 @@ def main():
         print(author, compose_url(token, project_id))
         selected = random.sample(email2commits[author],
                                  min(args.n, len(email2commits[author])))
-        for i in range(-1, args.n - 1):
+        for i in range(-1, len(selected) - 1):
             c1 = selected[i]
             c2 = selected[i + 1]
             assert c1.author.email == c2.author.email
@@ -125,8 +128,8 @@ def main():
                 base = base + 1
             email = args.emails[(base + i + 2) % len(args.emails)]
             assert email != author or len(args.emails) == 1
-            c1 = selected[i % args.n]
-            c2 = selected[(i + 1) % args.n]
+            c1 = selected[i % len(selected)]
+            c2 = selected[(i + 1) % len(selected)]
             assert c1.author.email == c2.author.email
 
             database.add_comparison(c1.hexsha, c2.hexsha, email)
