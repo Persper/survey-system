@@ -17,3 +17,39 @@ npm run build
 # build for production and view the bundle analyzer report
 npm run build --report
 ```
+
+## Database Script
+
+``` bash
+# clear database
+MATCH (n) DETACH DELETE n;
+
+# remove comparions between same commits
+MATCH (c:Comparison) WHERE c.commit1 = c.commit2 DETACH DELETE c;
+
+# inspect database
+MATCH (n) RETURN n LIMIT 25;
+```
+
+## Workflow
+
+``` bash
+# clone repos (skipped here)
+
+# populate database
+cd /{path_to_survey_repo}/scripts
+./scan_emails.py -d ../repos/ --batch-mode
+./scan_emails.py -d ../special_repos/chinese-newcomers-service-center/ -s 7
+./scan_emails.py -d ../special_repos/coursequestionbank/ -b fall2017_features
+
+# connect to database with neo4j client
+neo4j-client -p {password} -u hezheng bolt://hobby-hkhdigaajbbfgbkegfgmfepl.dbs.graphenedb.com:24786
+
+# run in neo4j interactive shell
+MATCH (c:Comparison) WHERE c.commit1 = c.commit2 DETACH DELETE c;
+
+# test and send out emails
+./notifier.py -t
+./notifier.py -s
+```
+
