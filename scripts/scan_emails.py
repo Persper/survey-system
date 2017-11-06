@@ -32,8 +32,6 @@ def main():
                         help='number of self comparisons')
     parser.add_argument('-m', type=int, default=5,
                         help="number of comparisons of others' commits")
-    parser.add_argument('-b', '--branch', default='master',
-                        help='branch of the repo to analyze')
     args = parser.parse_args()
 
     if args.batch_mode:
@@ -60,8 +58,8 @@ def main():
         print('# of selected emails: %d' % len(emails))
         print('Selected emails: %s' % emails_str)
 
-        cmd = './populate_db.py -d %s -e %s -n %d -m %d -b %s' % \
-            (repo_dir, emails_str, args.n, args.m, args.branch)
+        cmd = './populate_db.py -d %s -e %s -n %d -m %d' % \
+            (repo_dir, emails_str, args.n, args.m)
         subprocess.call(cmd, shell=True)
         print('\n\n')
 

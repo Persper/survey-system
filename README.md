@@ -40,13 +40,16 @@ MATCH (n) RETURN n LIMIT 25;
 cd /{path_to_survey_repo}/scripts
 ./scan_emails.py -d ../repos/ --batch-mode
 ./scan_emails.py -d ../special_repos/chinese-newcomers-service-center/ -s 7
-./scan_emails.py -d ../special_repos/coursequestionbank/ -b fall2017_features
+./scan_emails.py -d ../special_repos/coursequestionbank/ 
 
 # connect to database with neo4j client
 neo4j-client -p {password} -u hezheng bolt://hobby-hkhdigaajbbfgbkegfgmfepl.dbs.graphenedb.com:24786
 
 # run in neo4j interactive shell
 MATCH (c:Comparison) WHERE c.commit1 = c.commit2 DETACH DELETE c;
+
+# souce env for sendgrid
+source ../sendgrid.env
 
 # test and send out emails
 ./notifier.py -t
