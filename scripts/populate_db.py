@@ -62,8 +62,6 @@ def main():
         description='Populate database with commits')
     parser.add_argument('-d', '--repo-dir', required=True,
                         help='dir of the repo to select commits')
-    parser.add_argument('-b', '--branch', default='master',
-                        help='branch of the repo to analyze')
     parser.add_argument('-e', '--emails', nargs='+', required=True,
                         help='emails of repo developers in the survey')
     parser.add_argument('-n', type=int, required=True,
@@ -88,7 +86,7 @@ def main():
     project_id = database.add_project(project_name, project_url)
 
     email2commits = dict()
-    for commit in repo.iter_commits(args.branch):
+    for commit in repo.iter_commits():
         email = commit.author.email
         if email not in email2commits:
             email2commits[email] = [commit]
