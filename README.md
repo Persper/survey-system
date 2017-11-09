@@ -36,8 +36,15 @@ MATCH (n) RETURN n LIMIT 25;
 ``` bash
 # clone repos (skipped here)
 
+# append the src dir to PYTHONPATH
+export PYTHONPATH=$PYTHONPATH:`pwd`/src
+
+# set environmental variables NEO4J_BOLT, NEO4J_USER, and NEO4J_PASSWORD
+# for accessing the database
+source neo4j.env
+
 # populate database
-cd /{path_to_survey_repo}/scripts
+cd scripts
 ./scan_emails.py -d ../repos/ --batch-mode
 ./scan_emails.py -d ../special_repos/chinese-newcomers-service-center/ -s 7
 ./scan_emails.py -d ../special_repos/coursequestionbank/ 
@@ -49,7 +56,7 @@ neo4j-client -p {password} -u hezheng bolt://hobby-hkhdigaajbbfgbkegfgmfepl.dbs.
 MATCH (c:Comparison) WHERE c.commit1 = c.commit2 DETACH DELETE c;
 
 # souce env for sendgrid
-source ../sendgrid.env
+source sendgrid.env
 
 # test and send out emails
 ./notifier.py -t

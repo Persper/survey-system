@@ -1,4 +1,5 @@
 from hashlib import sha1
+from os import environ
 from os.path import isfile
 from os.path import join
 from os import listdir
@@ -24,8 +25,12 @@ def local_credential(path):
 
 def init_driver():
     global _driver
-    bolt = 'bolt://hobby-ifakifjiedbegbkeliefldpl.dbs.graphenedb.com:24786'
-    usr, pwd = local_credential('neo4j-user')
+    bolt = environ.get('NEO4J_BOLT', None)
+    usr = environ.get('NEO4J_USER', None)
+    pwd = environ.get('NEO4J_PASSWORD', None)
+    if bolt is None or usr is None or pwd is None:
+        raise ValueError('No bolt/user/password environmental variables '
+                         'are set!')
     _driver = GraphDatabase.driver(bolt, auth=basic_auth(usr, pwd))
     print('INFO: the Neo4j driver is initialized.')
 
