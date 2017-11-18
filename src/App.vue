@@ -27,4 +27,34 @@ body {
 textarea {
   font-size: 14px;
 }
+.button {
+  flex: 1;
+  border: 0;
+  border-radius: 4px;
+  color: white;
+  height: 44px;
+  font-weight: bold;
+  font-size: 16px;
+  background: #1DB100;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+th {
+  font-weight: bold;
+  border: 1px solid #ccc;
+}
+
+th.sub {
+  background-color: #f2f2f2 !important;
+}
+
+td {
+  text-align: left;
+  padding: 3px 10px 2px;
+  border-bottom: 1px solid #ccc;
+}
 </style>
