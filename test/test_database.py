@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.6
 
 from database import *
 
@@ -37,7 +37,15 @@ def main():
     if c1['id'] > c2['id']:
         c1, c2 = c2, c1
     print('Reviewing: ', n, cid, c1['id'], c2['id'], selected)
+
+    add_label('tiny', 'Builtin', reviewer)
     label_small = add_label('small', 'Builtin', reviewer)
+    assert(label_small == add_label('small', 'Builtin', reviewer))
+    add_label('moderate', 'Builtin', reviewer)
+    add_label('large', 'Builtin', reviewer)
+    add_label('huge', 'Builtin', reviewer)
+
+    # Add the 1st review
     label_reduce_feature = add_label('reduce_feature', 'Customized', reviewer)
     label_improve_use = add_label('improve_use', 'Customized', reviewer)
     add_review(comparison_id=cid, commit_id=c1['id'],
@@ -89,7 +97,8 @@ def main():
     cid_tmp, _, _, n_tmp = next_review(pid, reviewer)
     cid, c1, c2, n = next_review(pid, reviewer)
     assert cid == cid_tmp and n == n_tmp
-    add_comment(cid, 'TODO', reviewer)
+    # Add the 2nd review by commenting
+    add_comment(cid, "This is a reviewer's comment", reviewer)
 
     test, _, _, n = next_review(pid, reviewer)
     assert test is None and n == n_tmp + 1
