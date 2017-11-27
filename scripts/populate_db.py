@@ -139,6 +139,14 @@ def main():
 
     check(args.n, args.m)
 
+    # Add builtin labels
+    reviewer = database.add_reviewer('jinglei@persper.org')
+    database.add_label('tiny', 'Builtin', reviewer)
+    database.add_label('small', 'Builtin', reviewer)
+    database.add_label('moderate', 'Builtin', reviewer)
+    database.add_label('large', 'Builtin', reviewer)
+    database.add_label('huge', 'Builtin', reviewer)
+
 
 if __name__ == '__main__':
     main()

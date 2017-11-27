@@ -11,3 +11,11 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
+
+# Python
+__pycache__/
+.ipynb_checkpoints
+
+# Persper specific
+sendgrid.env
+neo4j.env
