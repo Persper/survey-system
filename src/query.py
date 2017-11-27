@@ -94,15 +94,19 @@ def create_reviewer_node(tx, email, token):
 
 def next_compared_relationship(tx, project_id, token):
     result = tx.run("MATCH (:Reviewer {token: $token}) "
-                    "MATCH (c1:Commit)-[r:OUTVALUES]->(c2:Commit) "
+                    "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
                     "WHERE (c1)-[:COMMITTED_TO]->(:Project {id: $pid}) "
-                    "AND NOT (c1)-[:LABELED_WITH {comparison_id: r.id}]->(:Label) "
-                    "OR (c2)-[:COMMITTED_TO]->(:Project {id: $pid}) "
-                    "AND NOT (c2)-[:LABELED_WITH {comparison_id: r.id}]->(:Label) "
-                    "RETURN r.id, c1, c2 ORDER BY r.id LIMIT 1",
+                    "AND (c2)-[:COMMITTED_TO]->(:Project {id: $pid}) "
+                    "AND ("
+                    "NOT (c1)-[:LABELED_WITH {comparison_id: o.id}]->(:Label) "
+                    "OR "
+                    "NOT (c2)-[:LABELED_WITH {comparison_id: o.id}]->(:Label)"
+                    ") "
+                    "AND (NOT EXISTS(o.comment)) "
+                    "RETURN o.id, c1, c2 ORDER BY o.id LIMIT 1",
                     pid=project_id, token=token)
     record = result.single()
-    return record['r.id'], record['c1'], record['c2']
+    return record['o.id'], record['c1'], record['c2']
 
 
 def count_compared_relationships(tx, token):
@@ -139,22 +143,19 @@ def create_label_relationship(tx, comparison_id, commit_id, label_ids, token):
                cid=comparison_id, token=token)
 
 
-def create_comment_relationship(tx, comparison_id, comment, token):
+def create_comment_property(tx, comparison_id, comment, token):
     tx.run("MATCH (r:Reviewer {token: $token}) "
-           "MATCH (c1:Commit)-[:OUTVALUES {id: $cid}]->(c2:Commit) "
-           "MERGE (l:Label {name: 'unknown'}) "
-           "MERGE (c1)-[r1:LABELED_WITH {comparison_id: $cid, email: r.email}]->(l) "
-           "SET r1.comment = $comment "
-           "MERGE (c2)-[r2:LABELED_WITH {comparison_id: $cid, email: r.email}]->(l) "
-           "SET r2.comment = $comment",
+           "MATCH (:Commit)-[o:OUTVALUES {id: $cid}]->(:Commit) "
+           "SET o.comment = $comment",
            cid=comparison_id, comment=comment, token=token)
 
 
 def count_reviewed_relationships(tx, token):
     result = tx.run("MATCH (r:Reviewer {token: $token}) "
                     "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
-                    "WHERE (c1)-[:LABELED_WITH {email: r.email}]->(:Label) "
-                    "AND (c2)-[:LABELED_WITH {email: r.email}]->(:Label) "
+                    "WHERE ((c1)-[:LABELED_WITH {email: r.email}]->(:Label) "
+                    "AND (c2)-[:LABELED_WITH {email: r.email}]->(:Label)) "
+                    "OR EXISTS(o.comment)"
                     "RETURN count(o.id)", token=token)
     return result.single()[0]
 

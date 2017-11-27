@@ -126,7 +126,6 @@ def submit_review(project_id, review_id):
         return jsonify(STATUS_BAD_REQUEST)
     if comment:
         database.add_comment(review_id, comment, token)
-        return jsonify({'status': 0})
     commit2labels = dict()
     new_labels = []
     for label in commit_labels:

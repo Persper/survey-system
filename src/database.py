@@ -217,7 +217,7 @@ def add_comment(comparison_id, comment, token):
         init_driver()
     try:
         _driver.session().write_transaction(
-            query.create_comment_relationship, comparison_id, comment, token)
+            query.create_comment_property, comparison_id, comment, token)
     except Exception as e:
         print(e)
 
