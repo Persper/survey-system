@@ -166,8 +166,23 @@ def labels(project_id):
                     'data': {'builtin': builtin, 'customized': customized}})
 
 
+@app.route('/survey/v1/projects/<project_id>/project-info', methods=['GET'])
+def project_info(project_id):
+    token = request.headers.get('X-USR-TOKEN')
+    if token is None:
+        abort(403)
+
+    node = database.get_project(project_id)
+    if node is None:
+        return jsonify(STATUS_BAD_REQUEST)
+
+    project = {'id': node['id'], 'name': node['name'],
+               'githubUrl': node['github_url']}
+    return jsonify({'status': 0, 'data': {'project': project}})
+
+
 @app.route('/survey/v1/projects/<project_id>/developer-stats', methods=['GET'])
-def stats(project_id):
+def developer_stats(project_id):
     token = request.headers.get('X-USR-TOKEN')
     if token is None:
         abort(403)

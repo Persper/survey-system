@@ -81,6 +81,17 @@ def test_get_labels(address, token, project_id):
         print(r.text)
 
 
+def test_project_info(address, token, project_id):
+    url = '%s/survey/v1/projects/%s/project-info' % (address, project_id)
+    print('[ GET PROJECT INFO ] ' + url)
+    headers = {'X-USR-TOKEN': token}
+    r = requests.get(url, headers=headers)
+    if r.ok:
+        pprint(r.json())
+    else:
+        print(r.text)
+
+
 def test_developer_stats(address, token, project_id):
     url = '%s/survey/v1/projects/%s/developer-stats' % (address, project_id)
     print('[ GET DEVELOPER STATS ] ' + url)
@@ -112,6 +123,9 @@ def main():
     dt = args.developer_token
     rt = args.reviewer_token
     project_id = 'de65f79e6f3391866ab4d68cbebeee1bcdc859f0'
+
+    test_project_info(address, None, project_id)
+    test_project_info(address, dt, project_id)
 
     stats = test_developer_stats(address, dt, project_id)
     assert stats['total'] == 6 and stats['answered'] == 2

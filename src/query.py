@@ -1,10 +1,10 @@
 def create_project_node(tx, project_id, name, github_url):
     result = tx.run("MERGE (p:Project {name: $name}) "
-                    "ON CREATE SET p.id = $pid, p.github_url = $url "
-                    "RETURN p.id AS id, p.github_url AS github_url",
+                    "ON CREATE SET p.id = $pid, p.github_url = $url, "
+                    "p.url = $url " # TODO: Replace this with dgit URL
+                    "RETURN p.id AS id, p.github_url AS github_url, p.url AS url",
                     name=name, pid=project_id, url=github_url)
-    record = result.single()
-    return record['id'], record['github_url']
+    return result.single()
 
 
 def get_project_node(tx, project_id):
