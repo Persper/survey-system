@@ -1,6 +1,7 @@
 <template>
   <div class="question-form">
     <div v-if="question">
+      <div class="progress">#{{ progress.answered }} Question</div>
       <div class="question">{{ questionTitle }}</div>
       <ul class="options">
         <li v-for="item in options" class="option-wrapper">
@@ -25,7 +26,7 @@ export default {
   components: {
     'survey-option': Option
   },
-  props: ['question', 'count'],
+  props: ['question', 'progress', 'count'],
   data () {
     return {
       questionTitle: 'Which of the following two commits do you think is more valuable to the development of your project?',
@@ -77,6 +78,10 @@ export default {
 .loader {
   margin: 10px auto;
   text-align: center;
+}
+.progress {
+  color: blue;
+  margin: 4px 0;
 }
 .question {
   font-size: 20px;

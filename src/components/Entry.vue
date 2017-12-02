@@ -36,7 +36,7 @@
       </div>
       <div class="survey-info">
         <p>
-          Your have completed {%count%} questions and {%count%} have been reviewed. Next, we'll provide {%count%} questions.
+          Your have completed <em>{{answered}}</em> questions and <em>{{total}}</em> have been reviewed. Next, we'll provide more questions.
         </p>
         <p class="left">
           <button class="button" v-on:click="gotoQuestionView">Anwser Questions</button>
@@ -54,6 +54,7 @@
 import Vue from 'vue'
 import Wireframe from '@/components/Wireframe'
 import Storage from '@/mixins/storage'
+import Config from '@/config'
 
 export default {
   name: 'Entry',
@@ -63,11 +64,15 @@ export default {
   },
   data () {
     return {
+      isCompleted: false,
+      completedHint: '...',
+      total: 0,
+      answered: 0
     }
   },
   methods: {
     gotoQuestionView: function (evt) {
-      let projectId = this.$route.query.project
+      let projectId = this.$route.query.projectId
       this.$router.push({name: 'QuestionView', params: {projectId: projectId}})
     }
   },
@@ -77,6 +82,19 @@ export default {
     // save and set token
     this.saveToken(token)
     Vue.http.headers.common['X-USR-TOKEN'] = token
+    // get developer status
+    let url = Config.API_BASE + `/projects/${this.$route.query.projectId}/developer-stats`
+    this.$http.get(url).then(function (response) {
+      if (response.body.status !== 0) {
+        this.isCompleted = true
+        this.completedHint = response.body.message
+      } else {
+        this.answered = response.body.data.answered
+        this.total = response.body.data.total
+      }
+    }, function (response) {
+      alert('failed to reload, try later.')
+    })
   }
 }
 </script>

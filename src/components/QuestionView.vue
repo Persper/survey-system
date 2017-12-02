@@ -4,7 +4,7 @@
       <div v-if="isCompleted">
         {{completedHint}}
       </div>
-      <question-form v-else :question="questionObject" :count="count" v-on:result="fetchResult"/>
+      <question-form v-else :question="questionObject" :progress="progress" :count="count" v-on:result="fetchResult"/>
     </wireframe>
   </div>
 </template>
@@ -28,7 +28,10 @@ export default {
       questionObject: null,
       isCompleted: false,
       completedHint: '...',
-      isLoading: false
+      isLoading: false,
+      progress: {
+        answered: 0
+      }
     }
   },
   methods: {
@@ -41,6 +44,7 @@ export default {
           this.completedHint = response.body.message
         } else {
           this.questionObject = response.body.data.question
+          this.progress.answered = response.body.data.question.answered + 1
         }
         this.isLoading = false
         this.count += 1

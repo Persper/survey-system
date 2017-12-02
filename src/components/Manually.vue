@@ -6,9 +6,11 @@
       <input class="token-input" placeholder="token here." v-model="token" />
     </p>
     <p>
-      <button class="button" v-on:click="gotoQuestionView">Anwser Questions</button>
-      or
-      <button class="button" v-on:click="gotoReviewVuew">Review Questions</button>
+      <button class="button" v-on:click="gotoEntryView">Goto Developer Entry</button> <br/>
+      or <br/>
+      <button class="button" v-on:click="gotoQuestionView">Anwser Questions Directly</button> <br/>
+      or <br/>
+      <button class="button" v-on:click="gotoReviewVuew">Review Questions</button> <br/>
     </p>
   </div>
 </template>
@@ -25,6 +27,12 @@ export default {
     }
   },
   methods: {
+    gotoEntryView: function (evt) {
+      this.saveToken(this.token)
+      Vue.http.headers.common['X-USR-TOKEN'] = this.token
+      this.$router.push({name: 'Entry', params: {token: this.token}, query: {projectId: this.project}})
+      return
+    },
     gotoQuestionView: function (evt) {
       this.saveToken(this.token)
       Vue.http.headers.common['X-USR-TOKEN'] = this.token
