@@ -9,6 +9,7 @@
         <div class="project-name">Hotot</div>
         <div class="project-info-body">
           <div class="rows">
+            <!--
             <div class="row">
               <div class="label">Persper Repo</div>
               <div class="value"><a href="https://persper.org/{%project_name%}">https://persper.org/{%project_name%}</a></div>
@@ -21,15 +22,19 @@
               <div class="label">Commits</div>
               <div class="value">{%count%}</div>
             </div>
+            -->
             <div class="row">
               <div class="label">Github Repo</div>
-              <div class="value"><a href="https://persper.org/{%project_name%}">https://github.com/{%project_name%}</a></div>
+              <div class="value"><a :href="githubUrl">{{githubUrl}}</a></div>
             </div>
           </div>
           <div class="explanation">
             <div class="explanation-content">
+              <!--
               Here we need to introduce what's persper repo and our decentralized git system. blah blah 
               <a href="">Learn more</a>
+              -->
+              In the survey, you will compare pairs of your commits to this following project.
             </div>
           </div>
         </div>
@@ -67,7 +72,8 @@ export default {
       isCompleted: false,
       completedHint: '...',
       total: 0,
-      answered: 0
+      answered: 0,
+      githubUrl: 'loading...'
     }
   },
   methods: {
@@ -91,6 +97,7 @@ export default {
       } else {
         this.answered = response.body.data.answered
         this.total = response.body.data.total
+        this.githubUrl = response.body.data.githubUrl
       }
     }, function (response) {
       alert('failed to reload, try later.')
@@ -125,6 +132,8 @@ export default {
 }
 .project-info .value {
   font-family: monospace;
+}
+.project-info .explanation {
 }
 .project-info .explanation-content {
   margin-left: 20px;
