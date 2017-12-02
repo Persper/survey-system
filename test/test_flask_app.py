@@ -81,6 +81,18 @@ def test_get_labels(address, token, project_id):
         print(r.text)
 
 
+def test_developer_stats(address, token, project_id):
+    url = '%s/survey/v1/projects/%s/developer-stats' % (address, project_id)
+    print('[ GET DEVELOPER STATS ] ' + url)
+    headers = {'X-USR-TOKEN': token}
+    r = requests.get(url, headers=headers)
+    if r.ok:
+        pprint(r.json())
+        return r.json()['data']
+    else:
+        print(r.text)
+
+
 def main():
     # The test of database fills the graph store with 6 pairs of commits.
     # Also, it has answered and reviewed 2 pairs.
@@ -100,6 +112,9 @@ def main():
     dt = args.developer_token
     rt = args.reviewer_token
     project_id = 'de65f79e6f3391866ab4d68cbebeee1bcdc859f0'
+
+    stats = test_developer_stats(address, dt, project_id)
+    assert stats['total'] == 6 and stats['answered'] == 2
 
     labels = test_get_labels(address, rt, project_id)
 
@@ -132,6 +147,9 @@ def main():
             break
         test_submit_answer(address, dt, project_id, question['id'],
                            question['commits'][0]['id'], 'Who knows')
+
+    stats = test_developer_stats(address, dt, project_id)
+    assert stats['total'] == 6 and stats['answered'] == 6
 
     # Makes the 4th - 6th reviews.
     while True:

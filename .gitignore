@@ -17,5 +17,4 @@ __pycache__/
 .ipynb_checkpoints
 
 # Persper specific
-sendgrid.env
-neo4j.env
+*.env

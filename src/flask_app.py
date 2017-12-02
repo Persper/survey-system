@@ -166,5 +166,18 @@ def labels(project_id):
                     'data': {'builtin': builtin, 'customized': customized}})
 
 
+@app.route('/survey/v1/projects/<project_id>/developer-stats', methods=['GET'])
+def stats(project_id):
+    token = request.headers.get('X-USR-TOKEN')
+    if token is None:
+        abort(403)
+    if not check_sha1(project_id):
+        return jsonify(STATUS_BAD_REQUEST)
+
+    total, answered = database.developer_stats(token)
+    return jsonify({'status': 0,
+                    'data': {'total': total, 'answered': answered}})
+
+
 if __name__ == '__main__':
     app.run()

@@ -229,3 +229,16 @@ def list_email_project():
         return _driver.session().read_transaction(query.list_email_project)
     except Exception as e:
         print(e)
+
+
+def developer_stats(token):
+    if not _driver:
+        init_driver()
+    try:
+        unanswered = _driver.session().read_transaction(
+            query.count_comparison_nodes, token)
+        answered = _driver.session().read_transaction(
+            query.count_compared_relationships, token)
+        return unanswered + answered, answered
+    except Exception as e:
+        print(e)

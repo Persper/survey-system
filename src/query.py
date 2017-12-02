@@ -75,6 +75,12 @@ def delete_comparison_node(tx, comparison_id, token):
     return record['c1'], record['c2']
 
 
+def count_comparison_nodes(tx, token):
+    result = tx.run("MATCH (:Email {token: $token})-[:COMPARES]->(c:Comparison) "
+                    "RETURN count(c)", token=token)
+    return result.single()[0]
+
+
 def create_compared_relationship(tx, comparison_id, more_valuable_commit,
                                  less_valuable_commit, reason, token):
     tx.run("MATCH (e:Email {token: $token}) "
