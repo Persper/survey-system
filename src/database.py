@@ -35,17 +35,17 @@ def init_driver():
     print('INFO: the Neo4j driver is initialized.')
 
 
-def add_project(name, url):
+def add_project(name, github_url):
     if not _driver:
         init_driver()
     pid = sha1(name.encode('utf-8')).hexdigest()
     try:
         res_pid, res_url = _driver.session().write_transaction(
-            query.create_project_node, pid, name, url)
+            query.create_project_node, pid, name, github_url)
         assert res_pid == pid
-        if res_url != url:
+        if res_url != github_url:
             print('WARN: an existing project with a different URL {name: %s} '
-                  '{url: %s} => {url: %s}' % (name, res_url, url))
+                  '{url: %s} => {url: %s}' % (name, res_url, github_url))
             return None
         return pid
     except Exception as e:

@@ -80,10 +80,10 @@ def main():
 
     repo = git.Repo(args.repo_dir)
 
-    project_url = repo.remotes.origin.url
-    user_name, repo_name = parse_repo_url(project_url)
+    github_url = repo.remotes.origin.url
+    user_name, repo_name = parse_repo_url(github_url)
     project_name = '%s-%s' % (user_name, repo_name)
-    project_id = database.add_project(project_name, project_url)
+    project_id = database.add_project(project_name, github_url)
 
     email2commits = dict()
     for commit in repo.iter_commits():
