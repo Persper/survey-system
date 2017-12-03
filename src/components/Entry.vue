@@ -6,7 +6,7 @@
         You are invited to take a survey.
       </div>
       <div class="project-info">
-        <div class="project-name">Hotot</div>
+        <div class="project-name">{{ projectName }}</div>
         <div class="project-info-body">
           <div class="rows">
             <!--
@@ -73,7 +73,9 @@ export default {
       completedHint: '...',
       total: 0,
       answered: 0,
-      githubUrl: 'loading...'
+      githubUrl: 'loading...',
+      projectName: '',
+      projectId: ''
     }
   },
   methods: {
@@ -97,7 +99,17 @@ export default {
       } else {
         this.answered = response.body.data.answered
         this.total = response.body.data.total
-        this.githubUrl = response.body.data.githubUrl
+      }
+    }, function (response) {
+      alert('failed to reload, try later.')
+    })
+
+    url = Config.API_BASE + `/projects/${this.$route.query.projectId}/project-info`
+    this.$http.get(url).then(function (response) {
+      if (response.body.status === 0) {
+        this.githubUrl = response.body.data.project.githubUrl
+        this.projectName = response.body.data.project.name
+        this.projectId = response.body.data.project.id
       }
     }, function (response) {
       alert('failed to reload, try later.')
