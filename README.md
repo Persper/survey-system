@@ -40,9 +40,14 @@ MATCH (n) RETURN n LIMIT 25;
 
 # append the src dir to PYTHONPATH
 export PYTHONPATH=$PYTHONPATH:`pwd`/src
+```
 
-# set environmental variables NEO4J_BOLT, NEO4J_USER, and NEO4J_PASSWORD
-source neo4j.env
+Create config.ini in the current dir.
+```
+[neo4j]
+bolt=NEO4J_BOLT
+user=NEO4J_USER
+password=NEO4J_PASSWORD
 ```
 
 2. Populate the database.

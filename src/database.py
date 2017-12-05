@@ -1,9 +1,5 @@
+import configparser
 from hashlib import sha1
-from os import environ
-from os.path import isfile
-from os.path import join
-from os import listdir
-import random
 import secrets
 
 from neo4j.v1 import basic_auth
@@ -15,22 +11,16 @@ import query
 _driver = None
 
 
-def local_credential(path):
-    files = [f for f in listdir(path) if isfile(join(path, f))]
-    usr = random.choice(files)
-    with open(join(path, usr), 'r') as f:
-        pwd = f.readline()
-    return usr, pwd.strip()
+def neo4j_credential():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    section = config['neo4j']
+    return section['bolt'], section['user'], section['password']
 
 
 def init_driver():
     global _driver
-    bolt = environ.get('NEO4J_BOLT', None)
-    usr = environ.get('NEO4J_USER', None)
-    pwd = environ.get('NEO4J_PASSWORD', None)
-    if bolt is None or usr is None or pwd is None:
-        raise ValueError('No bolt/user/password environmental variables '
-                         'are set!')
+    bolt, usr, pwd = neo4j_credential()
     _driver = GraphDatabase.driver(bolt, auth=basic_auth(usr, pwd))
     print('INFO: the Neo4j driver is initialized.')
 
