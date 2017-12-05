@@ -3,7 +3,14 @@
     <wireframe>
     <div class="container">
       <div class="title">
-        You are invited to take a survey.
+        Welcome to the Persper Foundation's code value survey!
+        <div class="guideline">
+          <p>Thank you for agreeing to participate this survey for evaluating code contributions. The survey result will help innovate the rewarding mechanism for open source developers and may lead to more financially sustainable open source development.
+          </p>
+          <p>
+          In the survey, you will compare pairs of <em>your own</em> commits to this following project.
+          </p>
+        </div>
       </div>
       <div class="project-info">
         <div class="project-name">{{ projectName }}</div>
@@ -28,27 +35,27 @@
               <div class="value"><a :href="githubUrl">{{githubUrl}}</a></div>
             </div>
           </div>
+              <!--
           <div class="explanation">
             <div class="explanation-content">
-              <!--
               Here we need to introduce what's persper repo and our decentralized git system. blah blah 
               <a href="">Learn more</a>
-              -->
-              In the survey, you will compare pairs of your commits to this following project.
+              
             </div>
           </div>
+              --> 
         </div>
       </div>
       <div class="survey-info">
         <p>
-          Your have completed <em>{{answered}}</em> questions and <em>{{total}}</em> have been reviewed. Next, we'll provide more questions.
+          You have compared <em>{{answered}}</em> out of <em>{{total}}</em> pairs of your commits. Yon do not have to compare them all. Please feel free to stop/resume anytime.
         </p>
         <p class="left">
           <button class="button" v-on:click="gotoQuestionView">Anwser Questions</button>
         </p>
       </div>
       <div class="hint">
-        We collect data about the use of commit-related information by every project in Persper. These data provide opportunities to understand and improve Persper's evaluate system. blah blah bluh bluh...
+        If you have any question or suggestion about the survey, please email us: <a href="mailto:survey@persper.org">survey@persper.org</a>
       </div>
     </div>
   </wireframe>
@@ -124,8 +131,21 @@ export default {
 }
 .title, .project-info, .survey-info {
   border-bottom: 1px solid #eee;
-  padding: 20px 0;
+  padding: 16px 0;
   font-size: 14px;
+}
+.title {
+  font-weight: bold;
+  padding-bottom: 0;
+}
+.guideline {
+  font-size: 12px;
+  font-weight: normal;
+  padding-top: 10px;
+  opacity: 0.6;
+}
+.guideline p {
+  margin: 0 0 8px 0;
 }
 .project-name {
   font-size: 20px;
@@ -140,7 +160,7 @@ export default {
   margin-bottom: 4px;
 }
 .project-info .label {
-  font-size: 10px;
+  font-size: 12px;
 }
 .project-info .value {
   font-family: monospace;
@@ -169,8 +189,8 @@ export default {
   margin-left: -20px;
 }
 .survey-info {
-  display: flex;
-  flex-direction: row;
+  /*display: flex;*/
+  /*flex-direction: row;*/
 }
 .survey-info > p {
   margin: 0;
@@ -178,6 +198,9 @@ export default {
 .survey-info .button {
   width: 180px;
   font-size: 14px;
+  margin-left: 10px;
+  margin: 20px auto 10px auto;
+  display: block;
 }
 .hint {
   margin-top: 20px;
