@@ -9,7 +9,7 @@
       </ul>
       <div class="reason">
         <div class="choice">User chose {{selectedId}} </div>
-        <div v-if="reason" class="reason-content">{{reason}}</div>
+        <div v-if="review.reason" class="reason-content">{{review.reason}}</div>
         <div v-else class="no-reason-hint">but user did articulate any reason.</div>
       </div>
       <hr/>
@@ -72,7 +72,7 @@ export default {
     },
     notSelectedId: function () {
       for (var i = 0; i < this.review.commits.length; i += 1) {
-        if (this.review.selectedId !== this.review.commits[i].id) {
+        if (this.review.selected !== this.review.commits[i].id) {
           return this.review.commits[i].id
         }
       }
@@ -109,10 +109,10 @@ export default {
             id: x.id, text: x.title, link: x.url, displayedId: x.id.substring(0, 10)
           }
         })
-        ret = ret.concat([
-          {id: -1, text: 'Really not comparable!'},
-          {id: -2, text: 'Problematic (e.g., one commit covers too many different changes).'}
-        ])
+        // ret = ret.concat([
+        //   {id: -1, text: 'Really not comparable!'},
+        //   {id: -2, text: 'Problematic (e.g., one commit covers too many different changes).'}
+        // ])
         return ret
       }
       return []
