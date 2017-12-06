@@ -95,10 +95,11 @@ def next_review(project_id):
     if project is None:
         return jsonify(STATUS_BAD_REQUEST)
 
-    cid, c1, c2, n = database.next_review(project_id, token)
-    if cid is None:
+    comp, c1, c2, n = database.next_review(project_id, token)
+    if comp is None:
         return jsonify(STATUS_END)
-    review = {'id': cid, 'type': 'single', 'selected': c1['id'], 'reviewed': n}
+    review = {'id': comp['id'], 'reason': comp['reason'],
+              'type': 'single', 'selected': c1['id'], 'reviewed': n}
     if c1['id'] > c2['id']:
         c1, c2 = c2, c1
     commit1 = {'id': c1['id'], 'title': c1['title'],

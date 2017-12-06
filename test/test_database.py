@@ -8,8 +8,16 @@ def main():
     developer = add_developer('Lyric Wai', 'w@persper.org')
     reviewer = add_reviewer('jinglei@persper.org')
 
-    # Inputs the 1st pair of commits for test.
-    # This is an out-of-order complicated path. See other pairs for reference.
+    # Loads built-in labels.
+    add_label('tiny', 'Builtin', reviewer)
+    label_small = add_label('small', 'Builtin', reviewer)
+    assert(label_small == add_label('small', 'Builtin', reviewer))
+    add_label('moderate', 'Builtin', reviewer)
+    add_label('large', 'Builtin', reviewer)
+    add_label('huge', 'Builtin', reviewer)
+
+    # Loads the 1st question.
+    # This is an out-of-order complicated path.
     add_commit(sha1_hex='915330ffc269eed821d652292993ff75b717a66b',
                title='new image for tweets which are retweeted by user',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
@@ -17,9 +25,13 @@ def main():
     cid = add_comparison('b35414f93aa5caaff115791d4040271047df25b3',
                          '915330ffc269eed821d652292993ff75b717a66b',
                          'w@persper.org')
-    comp, c1, c2, n = next_comparison(developer)
-    assert comp['id'] == cid
-    print('Answering:', n, comp['id'], c1['id'], c2['id'])
+    q, c1, c2, n = next_comparison(developer)
+    assert q['id'] == cid
+    assert c1['id'] == '915330ffc269eed821d652292993ff75b717a66b'
+    assert c2['id'] == 'b35414f93aa5caaff115791d4040271047df25b3'
+    print('Added Question #%d: %s' % (n, cid))
+
+    # Answers the 1st question.
     add_answer(comparison_id=cid,
                valuable_commit='b35414f93aa5caaff115791d4040271047df25b3',
                reason='第二个 commit 是 disable a feature，第一个是优化体验。',
@@ -28,36 +40,29 @@ def main():
                title='disable the position saving',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
                project_id=pid)
-    test, _, _, n_1 = next_comparison(developer)
-    assert test is None and n_1 == n + 1
+    print('Answered Question #%d: %s' % (n, cid))
+    test, _, _, next_n = next_comparison(developer)
+    assert test is None  # No more questions.
+    assert next_n == n + 1  # But the next question number is there.
 
-    cid, c1, c2, n = next_review(pid, reviewer)
-    assert cid == comp['id']
-    selected = c1['id']
-    if c1['id'] > c2['id']:
-        c1, c2 = c2, c1
-    print('Reviewing: ', n, cid, c1['id'], c2['id'], selected)
+    comp, c1, c2, n = next_review(pid, reviewer)
+    assert comp['id'] == cid
+    assert c1['id'] == 'b35414f93aa5caaff115791d4040271047df25b3'  # The selected one.
+    assert c2['id'] == '915330ffc269eed821d652292993ff75b717a66b'
 
-    add_label('tiny', 'Builtin', reviewer)
-    label_small = add_label('small', 'Builtin', reviewer)
-    assert(label_small == add_label('small', 'Builtin', reviewer))
-    add_label('moderate', 'Builtin', reviewer)
-    add_label('large', 'Builtin', reviewer)
-    add_label('huge', 'Builtin', reviewer)
-
-    # Add the 1st review
+    # Adds the 1st review.
     label_reduce_feature = add_label('reduce_feature', 'Customized', reviewer)
     label_improve_use = add_label('improve_use', 'Customized', reviewer)
     add_review(comparison_id=cid, commit_id=c1['id'],
                label_ids=[label_small, label_improve_use], token=reviewer)
-    test, _, _, n_1 = next_review(pid, reviewer)
-    assert test == cid and n_1 == n  # The current full review is not done yet.
+    comp, _, _, next_n = next_review(pid, reviewer)
+    assert comp['id'] == cid and next_n == n  # The current full review is not done yet.
     add_review(comparison_id=cid, commit_id=c2['id'],
                label_ids=[label_reduce_feature], token=reviewer)
-    test, _, _, n_1 = next_review(pid, reviewer)
-    assert test is None and n_1 == n + 1
+    test, _, _, next_n = next_review(pid, reviewer)
+    assert test is None and next_n == n + 1
 
-    # Inputs the 2nd pair of commits for test.
+    # Loads the 2nd question.
     add_commit(sha1_hex='810b5bdd1b6010867c8f8c04589633796a7e4362',
                title='Closes #445 - preferences window now showing for statusnet accounts',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
@@ -70,7 +75,7 @@ def main():
                           'd135f46d4149d1dd3b7fad92c737b1ab96991821',
                           'w@persper.org')
 
-    # Inputs the 3rd pair of commits for test.
+    # Loads the 3rd question.
     add_commit(sha1_hex='84e9c84b6bfa6c51caaa402248bcc5b60b713668',
                title='use notification to popup errors.',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
@@ -83,30 +88,33 @@ def main():
                           '84e9c84b6bfa6c51caaa402248bcc5b60b713668',
                           'w@persper.org')
 
-    comp_tmp, _, _, n_tmp = next_comparison(developer)
-    comp, c1, c2, n = next_comparison(developer)
-    assert comp['id'] == comp_tmp['id'] and n == n_tmp
-    print('Answering: ', n, comp['id'], c1['id'], c2['id'])
+    q, _, _, n = next_comparison(developer)
+    next_q, _, _, next_n = next_comparison(developer)
+    assert next_q['id'] == q['id'] and next_n == n
+
+    # Answers the 3rd question (skipping the 2nd).
     add_answer(comparison_id=cid3, valuable_commit='84e9c84b6bfa6c51caaa402248bcc5b60b713668',
                reason='B is a small refactor; A is to notify errors.',
                token=developer)
+    print('Answered Question #%d: %s' % (n, cid))
 
-    comp, c1, c2, n = next_comparison(developer)
-    assert comp['id'] == cid2 and n == n_tmp + 1
+    q, _, _, next_n = next_comparison(developer)
+    assert q['id'] == cid2 and next_n == n + 1
 
-    cid_tmp, _, _, n_tmp = next_review(pid, reviewer)
-    cid, c1, c2, n = next_review(pid, reviewer)
-    assert cid == cid_tmp and n == n_tmp
-    # Add the 2nd review by commenting
-    add_comment(cid, "This is a reviewer's comment", reviewer)
+    comp, _, _, n = next_review(pid, reviewer)
+    comp, _, _, next_n = next_review(pid, reviewer)
+    assert cid3 == comp['id'] and next_n == n
 
-    test, _, _, n = next_review(pid, reviewer)
-    assert test is None and n == n_tmp + 1
+    # Adds the 2nd review by commenting.
+    add_comment(cid3, "This is a reviewer's comment", reviewer)
+
+    test, _, _, next_n = next_review(pid, reviewer)
+    assert test is None and next_n == n + 1
 
     builtin, customized = list_labels(reviewer)
     print(builtin, customized)
 
-    # Inputs the 4th pair of commits for test.
+    # Loads the 4th question.
     add_commit(sha1_hex='873bbd8eaf1bf12121e56f009324e1b29a9154d2',
                title='remove useless styles',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
@@ -119,7 +127,7 @@ def main():
                    'f2e0f99fd07be21d535d96279d614ccbfc89ad02',
                    'w@persper.org')
 
-    # Inputs the 5th pair of commits for test.
+    # Loads the 5th question.
     add_commit(sha1_hex='fe857cbb4893f57b7cd7b4f4daff9ad8e61f463b',
                title='Chrome app bump to 0.9.7.21',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
@@ -132,7 +140,7 @@ def main():
                    '3cdd92c6f819004e1a36713a4551fd29e878497a',
                    'w@persper.org')
 
-    # Inputs the 6th pair of commits for test.
+    # Loads the 6th question.
     add_commit(sha1_hex='2b5015bcc0a7d5ac2521c7dbfe8243a356b9cffa',
                title='support to swap Quote/Retweet button.',
                author='Lyric Wai', email='5h3ll3x@gmail.com',
