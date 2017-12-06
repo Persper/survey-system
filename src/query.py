@@ -109,10 +109,10 @@ def next_compared_relationship(tx, project_id, token):
                     "NOT (c2)-[:LABELED_WITH {comparison_id: o.id}]->(:Label)"
                     ") "
                     "AND (NOT EXISTS(o.comment)) "
-                    "RETURN o.id, c1, c2 ORDER BY o.id LIMIT 1",
+                    "RETURN o, c1, c2 ORDER BY o.id LIMIT 1",
                     pid=project_id, token=token)
     record = result.single()
-    return record['o.id'], record['c1'], record['c2']
+    return record['o'], record['c1'], record['c2']
 
 
 def count_compared_relationships(tx, token):

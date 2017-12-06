@@ -155,9 +155,9 @@ def next_review(project_id, token):
     try:
         n = _driver.session().read_transaction(
             query.count_reviewed_relationships, token)
-        comparison_id, commit1, commit2 = _driver.session().read_transaction(
+        compared, commit1, commit2 = _driver.session().read_transaction(
             query.next_compared_relationship, project_id, token)
-        return comparison_id, commit1, commit2, n
+        return compared, commit1, commit2, n
     except Exception as e:
         print(e)
         return None, None, None, n
