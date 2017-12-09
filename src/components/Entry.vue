@@ -8,7 +8,7 @@
           <p>Thank you for agreeing to participate this survey for evaluating code contributions. The survey result will help innovate the rewarding mechanism for open source developers and may lead to more financially sustainable open source development.
           </p>
           <p>
-          In the survey, you will compare pairs of <em>your own</em> commits to this following project.
+          In the survey, you will compare pairs of <em>your own</em> commits to the following project.
           </p>
         </div>
       </div>
@@ -51,11 +51,11 @@
           You have compared <em>{{answered}}</em> out of <em>{{total}}</em> pairs of your commits. Yon do not have to compare them all. Please feel free to stop/resume anytime.
         </p>
         <p class="left">
-          <button class="button" v-on:click="gotoQuestionView">Anwser Questions</button>
+          <button class="button" v-on:click="gotoQuestionView">Answer Questions</button>
         </p>
       </div>
       <div class="hint">
-        If you have any question or suggestion about the survey, please email us: <a href="mailto:survey@persper.org">survey@persper.org</a>
+        If you have any questions or suggestions, please email us: <a href="mailto:survey@persper.org">survey@persper.org</a>
       </div>
     </div>
   </wireframe>
