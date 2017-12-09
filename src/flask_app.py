@@ -31,7 +31,7 @@ def version():
 def commit_url(project_url, commit_id):
     match = re.match(r'git@github.com:(.+)/(.+).git', project_url)
     if match is None:
-        match = re.match(r'http[s]?://github.com/(.+)/([^\.]+)(?:\.git)?',
+        match = re.match(r'http[s]?://github.com/(.+)/([^.]+)(?:\.git)?',
                          project_url)
     if match is None:
         raise ValueError('Repository URL not recognized')
@@ -147,7 +147,6 @@ def submit_review(project_id, review_id):
             continue
         return jsonify(STATUS_BAD_REQUEST)
     for commit_id, label_ids in commit2labels.items():
-        print(label_ids)
         database.add_review(comparison_id=review_id, commit_id=commit_id,
                             label_ids=label_ids, token=token)
     return jsonify({'status': 0, 'data': new_labels})

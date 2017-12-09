@@ -43,14 +43,14 @@ def check(n, m):
 
 
 def compose_url(token, project_id):
-    return 'http://survey.persper.org/#/entry/%s?project=%s' % (
+    return 'http://survey.persper.org/#/entry/%s?projectId=%s' % (
         token, project_id)
 
 
 def parse_repo_url(remote_url):
     match = re.match(r'git@github.com:(.+)/(.+).git', remote_url)
     if match is None:
-        match = re.match(r'http[s]?://github.com/(.+)/([^\.]+)(?:\.git)?',
+        match = re.match(r'http[s]?://github.com/(.+)/([^.]+)(?:\.git)?',
                          remote_url)
     if match is None:
         raise ValueError('Repository URL not recognized')
