@@ -92,6 +92,8 @@ def main():
     email2commits = dict()
     for commit in repo.iter_commits(max_count=args.max_count,
                                     skip=args.min_count):
+        if len(commit.parents) > 1:
+            continue
         email = commit.author.email
         if email not in email2commits:
             email2commits[email] = [commit]
@@ -101,7 +103,7 @@ def main():
     for e, author in enumerate(args.emails):
         token = database.get_developer_token(author)
         if token is None:
-            token = database.add_developer(email.split('@')[0], email)
+            token = database.add_developer(author.split('@')[0], author)
         print(author, compose_url(token, project_id))
         selected = random.sample(email2commits[author],
                                  min(args.n, len(email2commits[author])))
