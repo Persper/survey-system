@@ -13,7 +13,7 @@ _driver = None
 
 def neo4j_credential():
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read('survey.ini')
     section = config['neo4j']
     return section['bolt'], section['user'], section['password']
 
@@ -106,7 +106,7 @@ def add_comparison(commit1, commit2, email):
     try:
         if commit1 > commit2:
             commit1, commit2 = commit2, commit1
-        cid = sha1((commit1 + commit2 + email).encode('utf-8')).hexdigest()
+        cid = commit1 + commit2
         _driver.session().write_transaction(query.create_comparison_node,
                                             cid, commit1, commit2, email)
         return cid

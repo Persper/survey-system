@@ -62,6 +62,10 @@ def main():
         description='Populate database with commits')
     parser.add_argument('-d', '--repo-dir', required=True,
                         help='dir of the repo to select commits')
+    parser.add_argument('-l', '--min-count', type=int, default=0,
+                        help='min number of commit to begin with')
+    parser.add_argument('-u', '--max-count', type=int, default=sys.maxsize,
+                        help='max number of commit to end with')
     parser.add_argument('-e', '--emails', nargs='+', required=True,
                         help='emails of repo developers in the survey')
     parser.add_argument('-n', type=int, required=True,
@@ -86,7 +90,8 @@ def main():
     project_id = database.add_project(project_name, github_url)
 
     email2commits = dict()
-    for commit in repo.iter_commits():
+    for commit in repo.iter_commits(max_count=args.max_count,
+                                    skip=args.min_count):
         email = commit.author.email
         if email not in email2commits:
             email2commits[email] = [commit]
@@ -100,6 +105,7 @@ def main():
         print(author, compose_url(token, project_id))
         selected = random.sample(email2commits[author],
                                  min(args.n, len(email2commits[author])))
+        selected = sorted(selected, key=lambda x: x.hexsha)
         for i in range(-1, len(selected) - 1):
             c1 = selected[i]
             c2 = selected[i + 1]
