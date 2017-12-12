@@ -148,6 +148,20 @@ def add_answer(*, comparison_id, valuable_commit, reason, token):
         print(e)
 
 
+def get_related_answers(commit, token):
+    if not _driver:
+        init_driver()
+    try:
+        answers = _driver.session().read_transaction(
+            query.get_compared_relationships, commit, token)
+        return [{'commit1': a['commit1']['id'],
+                 'reason': a['outvalues']['reason'],
+                 'commit2': a['commit2']['id']}
+                for a in answers]
+    except Exception as e:
+        print(e)
+
+
 def next_review(project_id, token):
     if not _driver:
         init_driver()

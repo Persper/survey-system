@@ -115,6 +115,18 @@ def next_compared_relationship(tx, project_id, token):
     return record['o'], record['c1'], record['c2']
 
 
+def get_compared_relationships(tx, commit, token):
+    result = tx.run("MATCH (e:Email {token: $token}) "
+                    "MATCH (c1:Commit {id: $cid})-[o:OUTVALUES {email: e.email}]->(c2:Commit) "
+                    "RETURN c1 AS commit1, o AS outvalues, c2 AS commit2 "
+                    "UNION "
+                    "MATCH (e:Email {token: $token}) "
+                    "MATCH (c1:Commit)-[o:OUTVALUES {email: e.email}]->(c2:Commit {id: $cid}) "
+                    "RETURN c1 AS commit1, o AS outvalues, c2 AS commit2",
+                    token=token, cid=commit)
+    return result.records()
+
+
 def count_compared_relationships(tx, token):
     result = tx.run("MATCH (e:Email {token: $token}) "
                     "MATCH (:Commit)-[r:OUTVALUES {email: e.email}]->(:Commit) "

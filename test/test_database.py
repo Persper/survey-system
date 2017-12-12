@@ -50,6 +50,11 @@ def main():
     assert c1['id'] == 'b35414f93aa5caaff115791d4040271047df25b3'  # The selected one.
     assert c2['id'] == '915330ffc269eed821d652292993ff75b717a66b'
 
+    answers = get_related_answers('b35414f93aa5caaff115791d4040271047df25b3', developer)
+    len(answers) == 1
+    answers = get_related_answers('915330ffc269eed821d652292993ff75b717a66b', developer)
+    len(answers) == 1
+
     # Adds the 1st review.
     label_reduce_feature = add_label('reduce_feature', 'Customized', reviewer)
     label_improve_use = add_label('improve_use', 'Customized', reviewer)
@@ -91,6 +96,11 @@ def main():
     q, _, _, n = next_comparison(developer)
     next_q, _, _, next_n = next_comparison(developer)
     assert next_q['id'] == q['id'] and next_n == n
+
+    answers = get_related_answers('84e9c84b6bfa6c51caaa402248bcc5b60b713668', developer)
+    assert len(answers) == 0
+    answers = get_related_answers('a37dde730e446402683aa2bf8647870c8446b34e', developer)
+    assert len(answers) == 0
 
     # Answers the 3rd question (skipping the 2nd).
     add_answer(comparison_id=cid3, valuable_commit='84e9c84b6bfa6c51caaa402248bcc5b60b713668',
