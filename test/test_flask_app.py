@@ -135,14 +135,19 @@ def main():
     # Makes the the 3rd answer.
     question = test_next_question(address, dt, project_id)
     test_submit_answer(address, dt, project_id, question['id'],
-                       question['commits'][0]['id'], 'Who knows')
+                       question['commits'][0]['id'],
+                       '[3.1] is more valuable than [3.2]')
     # Makes the 4th answer.
     question = test_next_question(address, dt, project_id)
     test_submit_answer(address, dt, project_id, question['id'],
-                       question['commits'][1]['id'], 'Who knows')
+                       question['commits'][1]['id'],
+                       '[ 4.2 ] is more valuable than [ 4.1 ]')
 
     # Makes the 3rd review.
     review = test_next_review(address, rt, project_id)
+    if review is None:
+        print('[ ERROR ] Test ends unexpectedly!')
+        return
     label1 = {'commitId': review['commits'][0]['id'],
               'labelId': labels['builtin'][0]['id']}
     label2 = {'commitId': review['commits'][1]['id'],
@@ -160,7 +165,8 @@ def main():
         if question is None:
             break
         test_submit_answer(address, dt, project_id, question['id'],
-                           question['commits'][0]['id'], 'Who knows')
+                           question['commits'][0]['id'],
+                           '[who knows] is more valuable than [who knows]')
 
     stats = test_developer_stats(address, dt, project_id)
     assert stats['total'] == 6 and stats['answered'] == 6

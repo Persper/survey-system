@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-from pprint import pprint
 import requests
 
 
@@ -39,6 +38,7 @@ def test_developer_stats(address, token, project_id):
 def main():
     # This test fetches and answers all questions.
     # It checks whether consecutive questions share an identical commit.
+    # Run populate_db.py first.
     parser = argparse.ArgumentParser(
         description='test app server (NOTE: run populate_db.py first)')
     parser.add_argument('-a', '--address', default='http://127.0.0.1:5000/',
@@ -56,17 +56,24 @@ def main():
     stats = test_developer_stats(address, args.token, args.project_id)
 
     last_commit = None
+    skip = 3
     new_answers = 0
     while True:
         question = test_next_question(address, args.token, args.project_id)
         if question is None:
             break
 
-        assert last_commit is None or last_commit == question['commits'][0]['id']
+        if skip:
+            skip -= 1
+        else:
+            assert last_commit == question['commits'][0]['id']
+            assert last_commit == question['commits'][0]['description']
         last_commit = question['commits'][1]['id']
 
         test_submit_answer(address, args.token, args.project_id, question['id'],
-                           question['commits'][0]['id'], 'Who knows')
+                           question['commits'][0]['id'],
+                           '[%s] is more valuable than [%s]' %
+                           (question['commits'][0]['id'], question['commits'][1]['id']))
         new_answers += 1
 
     assert stats['total'] - stats['answered'] == new_answers

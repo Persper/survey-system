@@ -8,7 +8,6 @@ from flask_cors import CORS
 
 import database
 
-
 app = Flask(__name__)
 CORS(app)
 
@@ -17,10 +16,15 @@ STATUS_BAD_REQUEST = {'status': 2, 'message': 'Bad request format!'}
 STATUS_END = {'status': 100, 'message': 'Good job! Mission complete!'}
 
 sha1_pattern = re.compile(r'[0-9a-f]{40}')
+reason_pattern = re.compile(r'\[(.*)\] is more valuable than \[(.*)\]')
 
 
 def check_sha1(digest):
     return not re.match(sha1_pattern, digest) is None
+
+
+def check_reason(text):
+    return not re.match(reason_pattern, text) is None
 
 
 @app.route('/survey/v1', methods=['GET'])
@@ -39,6 +43,28 @@ def commit_url(project_url, commit_id):
         match.group(1), match.group(2), commit_id)
 
 
+def parse_descriptions(reason):
+    m = re.match(reason_pattern, reason)
+    if m is None:
+        return None, None
+    return m.group(1), m.group(2)
+
+
+def assemble_descriptions(commit, answers):
+    final_description = None
+    for a in answers:
+        d1, d2 = parse_descriptions(a['reason'])
+        assert a['commit1'] == commit or a['commit2'] == commit
+        d = d1 if a['commit1'] == commit else d2
+        if d is None:
+            continue
+        if final_description is None:
+            final_description = d
+        else:
+            final_description += '/' + d
+    return final_description
+
+
 @app.route('/survey/v1/projects/<project_id>/questions/next', methods=['GET'])
 def next_question(project_id):
     token = request.headers.get('X-USR-TOKEN')
@@ -51,10 +77,18 @@ def next_question(project_id):
     comp, c1, c2, n = database.next_comparison(token)
     if comp is None:
         return jsonify(STATUS_END)
+
+    answers = database.get_related_answers(c1['id'], token)
+    d1 = assemble_descriptions(c1['id'], answers)
+    answers = database.get_related_answers(c2['id'], token)
+    d2 = assemble_descriptions(c2['id'], answers)
+
     commit1 = {'id': c1['id'], 'title': c1['title'],
-               'url': commit_url(project['url'], c1['id'])}
+               'url': commit_url(project['url'], c1['id']),
+               'description': d1}
     commit2 = {'id': c2['id'], 'title': c2['title'],
-               'url': commit_url(project['url'], c2['id'])}
+               'url': commit_url(project['url'], c2['id']),
+               'description': d2}
     question = {'id': comp['id'], 'type': 'single',
                 'commits': [commit1, commit2], 'answered': n}
 
@@ -73,6 +107,7 @@ def submit_answer(project_id, question_id):
 
     selected = request.json.get('selected')
     reason = request.json.get('reason')
+
     # If no commit is selected, the reason must be specified by
     # either human input or the option title (e.g., 'not comparable').
     if selected is None or reason is None:
@@ -81,6 +116,8 @@ def submit_answer(project_id, question_id):
         selected = None
         if not reason:
             return jsonify(STATUS_BAD_REQUEST)
+    elif not check_reason(reason):
+        return jsonify(STATUS_BAD_REQUEST)
     database.add_answer(comparison_id=question_id, valuable_commit=selected,
                         reason=reason, token=token)
     return jsonify({'status': 0})
