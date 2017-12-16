@@ -4,7 +4,7 @@
       <div v-if="isCompleted">
         {{completedHint}}
       </div>
-      <question-form v-else :question="questionObject" :progress="progress" :count="count" v-on:result="fetchResult"/>
+      <question-form v-else :question="questionObject" :progress="progress" :count="count" v-on:result="fetchResult" v-on:back="back"/>
     </wireframe>
   </div>
 </template>
@@ -62,6 +62,9 @@ export default {
       }, function (response) {
         alert('failed to save, try later.')
       })
+    },
+    back: function () {
+      this.$router.push({name: 'Entry', params: {token: this.token}, query: {projectId: this.$route.params.projectId}})
     }
   },
   created: function () {

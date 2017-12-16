@@ -9,10 +9,24 @@
         </li>
       </ul>
       <div class="reason-label">{{ reasonLabel }}</div>
-      <textarea class="reason" placeholder="Write reason here." v-model="comment"></textarea>
+      <div>
+        <div class="commit-comment">
+          <span>Commit <code>{{shortHash(question.commits[0].id)}}</code> is/has </span>
+          <input type="text" v-model="commitCommentA"/>
+        </div>
+        <div class="commit-comment">
+          <span>Commit <code>{{shortHash(question.commits[1].id)}}</code> is/has </span>
+          <input type="text" v-model="commitCommentB"/>
+        </div>
+        <div class="commit-comment">
+          <span v-if="selectedOption.constructor === String && selectedOption.length > 3">
+          so Commit <code>{{shortHash(selectedOption)}}</code> is more valuable than Commit <code>{{shortHash(notSelected.id)}}
+          </code></span>
+        </div>
+      </div>
       <div class="buttons">
         <button class="quit-button" v-on:click="quitButtonClicked">Quit</button>
-        <button class="save-button" v-on:click="saveButtonClicked" :disabled="selectedOption === 0 || comment.trim().length === 0">Save & Continue</button>
+        <button class="save-button" v-on:click="saveButtonClicked" :disabled="!validated">Save & Continue</button>
       </div>
     </div>
   </div>
@@ -32,6 +46,8 @@ export default {
       questionTitle: 'Which of the following two commits do you think is more valuable to the development of your project?',
       reasonLabel: 'Please explain the above answer. Think about both commit-specific reasons and commit-independent factors that may indicate your choice.',
       selectedOption: 0,
+      commitCommentA: '',
+      commitCommentB: '',
       comment: ''
     }
   },
@@ -50,25 +66,49 @@ export default {
         return ret
       }
       return []
+    },
+    notSelected: function () {
+      for (var i = 0; i < this.question.commits.length; i += 1) {
+        if (this.selectedOption !== this.question.commits[i].id) {
+          return this.question.commits[i]
+        }
+      }
+      return 0
+    },
+    validated: function () {
+      return this.selectedOption !== 0 && this.commitCommentA.trim().length !== 0 && this.commitCommentB.trim().length !== 0
     }
   },
   watch: {
     count: function (a, b) {
       this.selectedOption = 0
-      this.comment = ''
+      this.commitCommentA = ''
+      this.commitCommentB = ''
+      this.commitCommentA = this.question.commits[0].description || ''
+      this.commitCommentB = this.question.commits[1].description || ''
       console.log('reset form', this.selectedOption)
     }
   },
   methods: {
+    shortHash: function (hash) {
+      return hash.substring(0, 7)
+    },
     saveButtonClicked: function (event) {
+      var reason = ''
+      if (this.selectedOption === this.question.commits[0].id) {
+        reason = `[${this.commitCommentA}] is more valuable than [${this.commitCommentB}]`
+      } else if (this.selectedOption === this.question.commits[1].id) {
+        reason = `[${this.commitCommentB}] is more valuable than [${this.commitCommentA}]`
+      }
       let payload = {
         'selected': this.selectedOption,
-        'reason': this.comment
+        'reason': reason
       }
+      console.log(payload)
       this.$emit('result', payload)
     },
     quitButtonClicked: function (event) {
-      alert('close the window and leave.')
+      this.$emit('back', {})
     }
   }
 }
@@ -95,6 +135,17 @@ export default {
   width: 100%;
   border: #888 1px solid;
   height: 100px;
+}
+.commit-comment {
+  display: flex;
+  margin-bottom: 10px;
+}
+.commit-comment input {
+  flex: 1;
+  margin-left: 10px;
+}
+code {
+  color: #1DB100;
 }
 .options {
   padding: 0;
@@ -125,6 +176,6 @@ export default {
   opacity: 0.4;
 }
 .quit-button {
-  background: #EE220C;
+  background: #666;
 }
 </style>
