@@ -4,7 +4,7 @@
       <div v-if="isCompleted">
         {{completedHint}}
       </div>
-      <review-form v-else :review="reviewObject" :labels="labels" :count="count" v-on:result="fetchResult"/>
+      <review-form v-else :review="reviewObject" :labels="labels" :count="count" v-on:result="fetchResult" v-on:back="back"/>
     </wireframe>
   </div>
 </template>
@@ -71,6 +71,9 @@ export default {
       }, function (response) {
         alert('failed to reload, try later.')
       })
+    },
+    back: function () {
+      this.$router.push({name: 'Entry', params: {token: this.token}, query: {projectId: this.$route.params.projectId}})
     }
   },
   created: function () {

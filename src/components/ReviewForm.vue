@@ -166,7 +166,7 @@ export default {
       this.$emit('result', payload)
     },
     quitButtonClicked: function (event) {
-      alert('close the window and leave.')
+      this.$emit('back', {})
     }
   }
 }
