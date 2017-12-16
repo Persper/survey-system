@@ -24,7 +24,7 @@ body {
   text-align: center;
   color: #2c3e50;
 }
-textarea {
+textarea, input[type="text"] {
   font-size: 14px;
 }
 .button {
