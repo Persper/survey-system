@@ -53,11 +53,12 @@ export default {
   },
   computed: {
     options: function () {
+      let _this = this
       if (this.question) {
         let ret = this.question.commits.map(function (x) {
           return {
             id: x.id,
-            text: 'Commit ' + x.id.substring(0, 7) + ': ' + x.title,
+            text: 'Commit ' + _this.shortHash(x.id) + ': ' + x.title,
             link: x.url
           }
         })
@@ -78,7 +79,11 @@ export default {
       return 0
     },
     validated: function () {
-      return this.selectedOption !== 0 && this.commitCommentA.trim().length !== 0 && this.commitCommentB.trim().length !== 0
+      let opt = String(this.selectedOption)
+      if (opt === '-1' || opt === '-2') {
+        return true
+      }
+      return opt !== '0' && this.commitCommentA.trim().length !== 0 && this.commitCommentB.trim().length !== 0
     }
   },
   watch: {
