@@ -2,11 +2,16 @@
 
 The Persper survey system
 
-## Build
+## Build The Front End
 
 ``` bash
 # install dependencies
 npm install
+
+# make a config file
+cp src/config.sample.js src/config.js
+# change any config
+nano src/config.js
 
 # serve with hot reload at localhost:8080
 npm run dev
@@ -100,3 +105,4 @@ cd test
 ./test_flask_app.py -h # see the manual for more details
 ```
 
+4. After the front end is up locally, visit the page for test: http://localhost:8080/#/manually.
