@@ -11,16 +11,16 @@
       <div class="reason-label">{{ reasonLabel }}</div>
       <div>
         <div class="commit-comment">
-          <span>Commit <code>{{shortHash(question.commits[0].id)}}</code> is/has </span>
+          <span>Commit <code>{{shortHash(question.commits[0].id)}}</code> does/is/has </span>
           <input type="text" v-model="commitCommentA"/>
         </div>
         <div class="commit-comment">
-          <span>Commit <code>{{shortHash(question.commits[1].id)}}</code> is/has </span>
+          <span>Commit <code>{{shortHash(question.commits[1].id)}}</code> does/is/has </span>
           <input type="text" v-model="commitCommentB"/>
         </div>
         <div class="commit-comment">
           <span v-if="selectedOption.constructor === String && selectedOption.length > 3">
-          so Commit <code>{{shortHash(selectedOption)}}</code> is more valuable than Commit <code>{{shortHash(notSelected.id)}}
+          Therefore, Commit <code>{{shortHash(selectedOption)}}</code> is more valuable than Commit <code>{{shortHash(notSelected.id)}}
           </code></span>
         </div>
       </div>
@@ -56,7 +56,9 @@ export default {
       if (this.question) {
         let ret = this.question.commits.map(function (x) {
           return {
-            id: x.id, text: x.title, link: x.url
+            id: x.id,
+            text: 'Commit ' + x.id.substring(0, 7) + ': ' + x.title,
+            link: x.url
           }
         })
         ret = ret.concat([
