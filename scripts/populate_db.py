@@ -94,7 +94,7 @@ def main():
                                     skip=args.min_count):
         if len(commit.parents) > 1:
             continue
-        email = commit.author.email
+        email = commit.author.email.lower()
         if email not in email2commits:
             email2commits[email] = [commit]
         else:
@@ -111,13 +111,15 @@ def main():
         for i in range(-1, len(selected) - 1):
             c1 = selected[i]
             c2 = selected[i + 1]
-            assert c1.author.email == c2.author.email
+            c1_email = c1.author.email.lower()
+            c2_email = c2.author.email.lower()
+            assert c1_email == c2_email
 
             database.add_commit(sha1_hex=c1.hexsha, title=c1.summary,
-                                author=c1.author.name, email=c1.author.email,
+                                author=c1.author.name, email=c1_email,
                                 project_id=project_id)
             database.add_commit(sha1_hex=c2.hexsha, title=c2.summary,
-                                author=c2.author.name, email=c2.author.email,
+                                author=c2.author.name, email=c2_email,
                                 project_id=project_id)
             database.add_comparison(c1.hexsha, c2.hexsha, author)
 
@@ -127,7 +129,7 @@ def main():
             if author not in check_email2comparisons:
                 check_email2comparisons[author] = []
             check_email2comparisons[author].append(
-                [c1.author.email, c1.hexsha, c2.hexsha])
+                [c1_email, c1.hexsha, c2.hexsha])
         base = e
         for i in range(-1, args.m - 1):
             if args.emails[(base + i + 2) % len(args.emails)] == author:
@@ -136,14 +138,14 @@ def main():
             assert email != author or len(args.emails) == 1
             c1 = selected[i % len(selected)]
             c2 = selected[(i + 1) % len(selected)]
-            assert c1.author.email == c2.author.email
+            assert c1.author.email.lower() == c2.author.email.lower()
 
             database.add_comparison(c1.hexsha, c2.hexsha, email)
             # Below is for the check purpose.
             if email not in check_email2comparisons:
                 check_email2comparisons[email] = []
             check_email2comparisons[email].append(
-                [c1.author.email, c1.hexsha, c2.hexsha])
+                [c1.author.email.lower(), c1.hexsha, c2.hexsha])
 
     check(args.n, args.m)
 

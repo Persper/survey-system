@@ -46,7 +46,7 @@ def main():
         repo = git.Repo(repo_dir)
         emails = set()
         for commit in repo.iter_commits():
-            e = commit.author.email
+            e = commit.author.email.lower()
             if not is_temp_email(e):
                 emails.add(e)
             if is_github_private_email(e):
