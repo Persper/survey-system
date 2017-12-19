@@ -62,6 +62,8 @@ def main():
         description='Populate database with commits')
     parser.add_argument('-d', '--repo-dir', required=True,
                         help='dir of the repo to select commits')
+    parser.add_argument('-b', '--branch', default='master',
+                        help='branch of the repo to select commits')
     parser.add_argument('-l', '--min-count', type=int, default=0,
                         help='min number of commit to begin with')
     parser.add_argument('-u', '--max-count', type=int, default=sys.maxsize,
@@ -90,7 +92,7 @@ def main():
     project_id = database.add_project(project_name, github_url)
 
     email2commits = dict()
-    for commit in repo.iter_commits(max_count=args.max_count,
+    for commit in repo.iter_commits(args.branch, max_count=args.max_count,
                                     skip=args.min_count):
         if len(commit.parents) > 1:
             continue
