@@ -114,8 +114,6 @@ def submit_answer(project_id, question_id):
         return jsonify(STATUS_BAD_REQUEST)
     if not check_sha1(selected):
         selected = None
-        if not reason:
-            return jsonify(STATUS_BAD_REQUEST)
     elif not check_reason(reason):
         return jsonify(STATUS_BAD_REQUEST)
     database.add_answer(comparison_id=question_id, valuable_commit=selected,
