@@ -108,7 +108,7 @@ export default {
         this.total = response.body.data.total
       }
     }, function (response) {
-      alert('failed to reload, try later.')
+      alert('Failed to load. Please close and reopen.')
     })
 
     url = Config.API_BASE + `/projects/${this.$route.query.projectId}/project-info`
@@ -119,7 +119,7 @@ export default {
         this.projectId = response.body.data.project.id
       }
     }, function (response) {
-      alert('failed to reload, try later.')
+      alert('Failed to load. Please close and reopen.')
     })
   }
 }
@@ -139,7 +139,7 @@ export default {
   padding-bottom: 0;
 }
 .guideline {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: normal;
   padding-top: 10px;
   opacity: 0.6;
@@ -160,7 +160,7 @@ export default {
   margin-bottom: 4px;
 }
 .project-info .label {
-  font-size: 12px;
+  font-size: 14px;
 }
 .project-info .value {
   font-family: monospace;

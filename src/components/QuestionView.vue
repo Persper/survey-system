@@ -49,7 +49,7 @@ export default {
         this.isLoading = false
         this.count += 1
       }, function (response) {
-        alert('failed to reload, try later.')
+        alert('Failed to reload. Please try later.')
       })
     },
     fetchResult: function (result) {
@@ -60,7 +60,7 @@ export default {
       this.$http.post(url, result).then(function (response) {
         this.reload()
       }, function (response) {
-        alert('failed to save, try later.')
+        alert('Failed to save. Please try later.')
       })
     },
     back: function () {

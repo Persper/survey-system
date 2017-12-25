@@ -1,14 +1,14 @@
 <template>
   <div class="main">
-    <h2>Paste your project id and token here</h2>
+    <h2>Paste your project ID and token here:</h2>
     <p>
-      <input class="project-input" placeholder="project Id here." v-model="project" />
-      <input class="token-input" placeholder="token here." v-model="token" />
+      <input class="project-input" placeholder="Project ID" v-model="project" />
+      <input class="token-input" placeholder="Token" v-model="token" />
     </p>
     <p>
-      <button class="button" v-on:click="gotoEntryView">Goto Developer Entry</button> <br/>
+      <button class="button" v-on:click="gotoEntryView">Goto the Entry Page</button> <br/>
       or <br/>
-      <button class="button" v-on:click="gotoQuestionView">Anwser Questions Directly</button> <br/>
+      <button class="button" v-on:click="gotoQuestionView">Anwser Questions</button> <br/>
       or <br/>
       <button class="button" v-on:click="gotoReviewVuew">Review Questions</button> <br/>
     </p>

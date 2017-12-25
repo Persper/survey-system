@@ -49,7 +49,7 @@ export default {
         this.count += 1
         this.isLoading = false
       }, function (response) {
-        alert('failed to reload, try later.')
+        alert('Failed to reload. Please try later.')
       })
     },
     fetchResult: function (result) {
@@ -60,7 +60,7 @@ export default {
         this.loadLabels()
         this.reload()
       }, function (response) {
-        alert('failed to save, try later.')
+        alert('Failed to save. Please try later.')
       })
     },
     loadLabels: function () {
@@ -69,7 +69,7 @@ export default {
         console.log('reload labels', response.body.data)
         this.labels = response.body.data
       }, function (response) {
-        alert('failed to reload, try later.')
+        alert('Failed to reload. Please try later.')
       })
     },
     back: function () {
@@ -86,7 +86,7 @@ export default {
     //   console.log('load items', response.body.data.review)
     //   this.reviewObject = response.body.data.review
     // }, function (response) {
-    //   alert('failed to reload, try later.')
+    //   alert('Failed to load. Please try later.')
     // })
   }
 }

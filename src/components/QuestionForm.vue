@@ -20,8 +20,7 @@
         </div>
         <div class="commit-comment">
           <span v-if="selectedOption.constructor === String && selectedOption.length > 3">
-          Therefore, Commit <code>{{shortHash(selectedOption)}}</code> is more valuable than Commit <code>{{shortHash(notSelected.id)}}
-          </code></span>
+          Thus, Commit <code>{{shortHash(selectedOption)}}</code> is more valuable than Commit <code>{{shortHash(notSelected.id)}}</code>.</span>
         </div>
       </div>
       <div class="buttons">
