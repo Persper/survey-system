@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import re
 
 import requests
 import sendgrid
@@ -10,9 +11,22 @@ from sendgrid.helpers.mail import *
 import database
 
 
+def parse_file(path):
+    email2author = dict()
+    with open(path) as f:
+        lines = f.readlines()
+    for l in lines:
+        m = re.match(r'([\w.-]+@[\w.-]+)\s+"(.+)"', l)
+        if m:
+            email2author[m.group(1).lower()] = m.group(2)
+    return email2author
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Email developers with their survey links')
+    parser.add_argument('-f', '--file', required=True,
+                        help='email author list file')
     parser.add_argument('-t', '--test', action='store_true',
                         help='preview emails and links')
     parser.add_argument('-s', '--send', action='store_true',
@@ -21,21 +35,29 @@ def main():
     if not (args.test or args.send):
         parser.error('No action specified: add --test or --send')
 
+    email2author = parse_file(args.file)
+
     sg = sendgrid.SendGridAPIClient(apikey=os.environ.get('SENDGRID_API_KEY'))
     from_email = Email('survey@persper.org', 'Persper Survey')
-    subject = 'Berkeley CS169 Survey Link'
-    content = Content('text/html', 'CS169 Persper Team')
+    subject = 'FreeBSD Developer Survey (with a Prize)'
+    content = Content('text/html', '@ 2017 The Persper Foundation')
 
     for r in database.list_email_project():
-        link = 'http://survey.persper.org/#/entry/%s?project=%s' % (
+        link = 'http://survey.persper.org/#/entry/%s?projectId=%s' % (
             r['token'], r['project'])
+        if r['email'] in email2author:
+            name = email2author[r['email']]
+        else:
+            continue
         if args.test:
-            print(r['email'], link)
+            print(r['email'], name, link)
         elif args.send:
             print('Sending to ' + r['email'])
             to_email = Email(r['email'])
             m = Mail(from_email, subject, to_email, content)
-            m.template_id = '22d50eb9-11fb-4ede-a266-5435207cbc92'
+            m.template_id = '985509ac-501c-4edd-9748-b22c38726c65'
+            m.personalizations[0].add_substitution(
+              Substitution('-name-', name))
             m.personalizations[0].add_substitution(
                 Substitution('-link-', link))
             try:
