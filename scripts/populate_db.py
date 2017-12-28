@@ -57,6 +57,12 @@ def parse_repo_url(remote_url):
     return match.group(1), match.group(2)
 
 
+def parse_emails(file_path):
+    with open(file_path) as f:
+        content = f.read()
+    return [email.lower() for email in re.findall(r'[\w.-]+@[\w.-]+', content)]
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Populate database with commits')
@@ -68,20 +74,26 @@ def main():
                         help='min number of commit to begin with')
     parser.add_argument('-u', '--max-count', type=int, default=sys.maxsize,
                         help='max number of commit to end with')
-    parser.add_argument('-e', '--emails', nargs='+', required=True,
+    parser.add_argument('-e', '--emails', nargs='+',
                         help='emails of repo developers in the survey')
+    parser.add_argument('-f', '--file', help='email author list file')
     parser.add_argument('-n', type=int, required=True,
                         help='number of self comparisons')
     parser.add_argument('-m', type=int, default=0,
                         help="number of comparisons of others' commits")
     args = parser.parse_args()
 
-    if args.m > 0 and len(args.emails) < 1 or args.n < 2:
+    emails = args.emails if args.emails else []
+    emails += parse_emails(args.file) if args.file else []
+    if len(emails) < 1:
+        sys.exit('Please specify emails by -e or -f. See help info by -h.')
+
+    if args.m > 0 and len(emails) < 1 or args.n < 2:
         sys.exit('ERR: Cannot meet the requirement of m.')
-    if args.m > args.n and args.n % (len(args.emails) - 1) == 0:
+    if args.m > args.n and args.n % (len(emails) - 1) == 0:
         sys.exit('ERR: The current algorithm does not support such n and m. '
                  'Increase/decrease n by 1 or increase the number of emails.')
-    if args.m > args.n * (len(args.emails) - 1):
+    if args.m > args.n * (len(emails) - 1):
         sys.exit('ERR: Cannot meet the requirement of m. Increase n.')
 
     repo = git.Repo(args.repo_dir)
@@ -102,7 +114,7 @@ def main():
         else:
             email2commits[email].append(commit)
 
-    for e, author in enumerate(args.emails):
+    for e, author in enumerate(emails):
         token = database.get_developer_token(author)
         if token is None:
             token = database.add_developer(author.split('@')[0], author)
@@ -134,10 +146,10 @@ def main():
                 [c1_email, c1.hexsha, c2.hexsha])
         base = e
         for i in range(-1, args.m - 1):
-            if args.emails[(base + i + 2) % len(args.emails)] == author:
+            if emails[(base + i + 2) % len(emails)] == author:
                 base = base + 1
-            email = args.emails[(base + i + 2) % len(args.emails)]
-            assert email != author or len(args.emails) == 1
+            email = emails[(base + i + 2) % len(emails)]
+            assert email != author or len(emails) == 1
             c1 = selected[i % len(selected)]
             c2 = selected[(i + 1) % len(selected)]
             assert c1.author.email.lower() == c2.author.email.lower()
