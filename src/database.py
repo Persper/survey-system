@@ -227,15 +227,6 @@ def add_comment(comparison_id, comment, token):
         print(e)
 
 
-def list_email_project():
-    if not _driver:
-        init_driver()
-    try:
-        return _driver.session().read_transaction(query.list_email_project)
-    except Exception as e:
-        print(e)
-
-
 def developer_stats(token):
     if not _driver:
         init_driver()
@@ -245,5 +236,25 @@ def developer_stats(token):
         answered = _driver.session().read_transaction(
             query.count_compared_relationships, token)
         return unanswered + answered, answered
+    except Exception as e:
+        print(e)
+
+
+def list_email_project():
+    if not _driver:
+        init_driver()
+    try:
+        return _driver.session().read_transaction(query.list_email_project)
+    except Exception as e:
+        print(e)
+
+
+def count_compared():
+    if not _driver:
+        init_driver()
+    try:
+        counts = _driver.session().read_transaction(
+            query.list_compared_relationship_counts)
+        return [(c['email'], c['count']) for c in counts]
     except Exception as e:
         print(e)
