@@ -42,6 +42,22 @@ def check(n, m):
         check_one_author(email, comparisons, n, m)
 
 
+max_times = 20
+ratio_buckets = [0] * max_times
+
+
+def record_ratio(a, b):
+    r = int(max(a/b, b/a))
+    if r > max_times:
+        r = max_times
+    ratio_buckets[r-1] += 1
+
+
+def sum_percents():
+    s = sum(ratio_buckets)
+    return s, [n / s for n in ratio_buckets]
+
+
 def compose_url(token, project_id):
     return 'http://survey.persper.org/#/entry/%s?projectId=%s' % (
         token, project_id)
@@ -65,7 +81,7 @@ def parse_emails(file_path):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Populate database with commits')
+        description='Populate a database with commits')
     parser.add_argument('-d', '--repo-dir', required=True,
                         help='dir of the repo to select commits')
     parser.add_argument('-b', '--branch', default='master',
@@ -81,6 +97,9 @@ def main():
                         help='number of self comparisons')
     parser.add_argument('-m', type=int, default=0,
                         help="number of comparisons of others' commits")
+    parser.add_argument('-s', '--stats', action='store_true',
+                        help='show stats of chosen commits, '
+                             'without populating the database')
     args = parser.parse_args()
 
     emails = args.emails if args.emails else []
@@ -101,7 +120,8 @@ def main():
     github_url = repo.remotes.origin.url
     user_name, repo_name = parse_repo_url(github_url)
     project_name = '%s-%s' % (user_name, repo_name)
-    project_id = database.add_project(project_name, github_url)
+    if not args.stats:
+        project_id = database.add_project(project_name, github_url)
 
     email2commits = dict()
     for commit in repo.iter_commits(args.branch, max_count=args.max_count,
@@ -115,10 +135,11 @@ def main():
             email2commits[email].append(commit)
 
     for e, author in enumerate(emails):
-        token = database.get_developer_token(author)
-        if token is None:
-            token = database.add_developer(author.split('@')[0], author)
-        print(author, compose_url(token, project_id))
+        if not args.stats:
+            token = database.get_developer_token(author)
+            if token is None:
+                token = database.add_developer(author.split('@')[0], author)
+            print(author, compose_url(token, project_id))
         selected = random.sample(email2commits[author],
                                  min(args.n, len(email2commits[author])))
         selected = sorted(selected, key=lambda x: x.hexsha)
@@ -129,13 +150,20 @@ def main():
             c2_email = c2.author.email.lower()
             assert c1_email == c2_email
 
-            database.add_commit(sha1_hex=c1.hexsha, title=c1.summary,
-                                author=c1.author.name, email=c1_email,
-                                project_id=project_id)
-            database.add_commit(sha1_hex=c2.hexsha, title=c2.summary,
-                                author=c2.author.name, email=c2_email,
-                                project_id=project_id)
-            database.add_comparison(c1.hexsha, c2.hexsha, author)
+            n1 = c1.stats.total['lines']
+            n2 = c2.stats.total['lines']
+            if not n1 or not n2:
+                continue
+            if args.stats:
+                record_ratio(n1, n2)
+            else:
+                database.add_commit(sha1_hex=c1.hexsha, title=c1.summary,
+                                    author=c1.author.name, email=c1_email,
+                                    project_id=project_id)
+                database.add_commit(sha1_hex=c2.hexsha, title=c2.summary,
+                                    author=c2.author.name, email=c2_email,
+                                    project_id=project_id)
+                database.add_comparison(c1.hexsha, c2.hexsha, author)
 
             # Below is for the check purpose.
             check_commit_pool.add(c1.hexsha)
@@ -154,7 +182,15 @@ def main():
             c2 = selected[(i + 1) % len(selected)]
             assert c1.author.email.lower() == c2.author.email.lower()
 
-            database.add_comparison(c1.hexsha, c2.hexsha, email)
+            n1 = c1.stats.total['lines']
+            n2 = c2.stats.total['lines']
+            if not n1 or not n2:
+                continue
+            if args.stats:
+                record_ratio(n1, n2)
+            else:
+                database.add_comparison(c1.hexsha, c2.hexsha, email)
+
             # Below is for the check purpose.
             if email not in check_email2comparisons:
                 check_email2comparisons[email] = []
@@ -162,14 +198,20 @@ def main():
                 [c1.author.email.lower(), c1.hexsha, c2.hexsha])
 
     check(args.n, args.m)
+    s, d = sum_percents()
+    print('Total number of commits:', s)
+    for i, p in enumerate(d):
+        print('%dx=%.1f%%' % (i + 1, p * 100), end=', ')
+    print()
 
     # Add builtin labels
-    reviewer = database.add_reviewer('jinglei@persper.org')
-    database.add_label('tiny', 'Builtin', reviewer)
-    database.add_label('small', 'Builtin', reviewer)
-    database.add_label('moderate', 'Builtin', reviewer)
-    database.add_label('large', 'Builtin', reviewer)
-    database.add_label('huge', 'Builtin', reviewer)
+    if not args.stats:
+        reviewer = database.add_reviewer('jinglei@persper.org')
+        database.add_label('tiny', 'Builtin', reviewer)
+        database.add_label('small', 'Builtin', reviewer)
+        database.add_label('moderate', 'Builtin', reviewer)
+        database.add_label('large', 'Builtin', reviewer)
+        database.add_label('huge', 'Builtin', reviewer)
 
 
 if __name__ == '__main__':
