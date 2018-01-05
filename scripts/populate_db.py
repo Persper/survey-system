@@ -74,9 +74,13 @@ def parse_repo_url(remote_url):
 
 
 def parse_emails(file_path):
+    emails = []
     with open(file_path) as f:
-        content = f.read()
-    return [email.lower() for email in re.findall(r'[\w.-]+@[\w.-]+', content)]
+        for line in f:
+            match = re.match(r'[\w.\-\+]+@[\w.\-]+', line)
+            if match:
+                emails.append(match.group())
+    return emails
 
 
 def main():
@@ -100,6 +104,9 @@ def main():
     parser.add_argument('-s', '--stats', action='store_true',
                         help='show stats of chosen commits, '
                              'without populating the database')
+    parser.add_argument('-v', '--verify', action='store_true',
+                        help='print out commits for verification '
+                             'without populating the database')
     parser.add_argument('-r', '--ratio', type=int, default=sys.maxsize,
                         help='max ratio of commit sizes in a comparision')
     args = parser.parse_args()
@@ -122,7 +129,7 @@ def main():
     github_url = repo.remotes.origin.url
     user_name, repo_name = parse_repo_url(github_url)
     project_name = '%s-%s' % (user_name, repo_name)
-    if not args.stats:
+    if not args.stats and not args.verify:
         project_id = database.add_project(project_name, github_url)
 
     email2commits = dict()
@@ -137,7 +144,7 @@ def main():
             email2commits[email].append(commit)
 
     for e, author in enumerate(emails):
-        if not args.stats:
+        if not args.stats and not args.verify:
             token = database.get_developer_token(author)
             if token is None:
                 token = database.add_developer(author.split('@')[0], author)
@@ -161,8 +168,9 @@ def main():
                 record_ratio(n1, n2)
             elif int(max(n1 / n2, n2 / n1)) > args.ratio:
                 continue
+            elif args.verify:
+                print(c1.hexsha, c2.hexsha, max(n1 / n2, n2 / n1))
             else:
-                n_added += 1
                 database.add_commit(sha1_hex=c1.hexsha, title=c1.summary,
                                     author=c1.author.name, email=c1_email,
                                     project_id=project_id)
@@ -171,16 +179,17 @@ def main():
                                     project_id=project_id)
                 database.add_comparison(c1.hexsha, c2.hexsha, author)
 
-                # Below is for the check purpose.
-                check_commit_pool.add(c1.hexsha)
-                check_commit_pool.add(c2.hexsha)
-                if author not in check_email2comparisons:
-                    check_email2comparisons[author] = []
-                check_email2comparisons[author].append(
-                    [c1_email, c1.hexsha, c2.hexsha])
+            # Below is for the check purpose.
+            check_commit_pool.add(c1.hexsha)
+            check_commit_pool.add(c2.hexsha)
+            if author not in check_email2comparisons:
+                check_email2comparisons[author] = []
+            check_email2comparisons[author].append(
+                [c1_email, c1.hexsha, c2.hexsha])
 
-                if n_added >= args.n:
-                    break
+            n_added += 1
+            if n_added >= args.n:
+                break
 
         m_added = 0
         base = e
@@ -201,18 +210,18 @@ def main():
                 record_ratio(n1, n2)
             elif int(max(n1 / n2, n2 / n1)) > args.ratio:
                 continue
-            else:
-                m_added += 1
+            elif not args.verify:
                 database.add_comparison(c1.hexsha, c2.hexsha, email)
 
-                # Below is for the check purpose.
-                if email not in check_email2comparisons:
-                    check_email2comparisons[email] = []
-                check_email2comparisons[email].append(
-                    [c1.author.email.lower(), c1.hexsha, c2.hexsha])
+            # Below is for the check purpose.
+            if email not in check_email2comparisons:
+                check_email2comparisons[email] = []
+            check_email2comparisons[email].append(
+                [c1.author.email.lower(), c1.hexsha, c2.hexsha])
 
-                if m_added >= args.m:
-                    break
+            m_added += 1
+            if m_added >= args.m:
+                break
 
     if args.stats:
         s, d = sum_percents()
@@ -220,7 +229,7 @@ def main():
         for i, p in enumerate(d):
             print('%dx=%.1f%%' % (i + 1, p * 100), end=', ')
         print()
-    else:
+    elif not args.verify:
         check(args.n, args.m)
 
         # Add builtin labels
