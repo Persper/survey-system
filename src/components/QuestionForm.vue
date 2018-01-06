@@ -62,7 +62,7 @@ export default {
           }
         })
         ret = ret.concat([
-          {id: -1, text: 'Really not comparable!'},
+          {id: -1, text: 'Really not comparable (or both are trivial)!'},
           {id: -2, text: 'Problematic (e.g., one commit covers too many different changes).'}
         ])
         return ret
