@@ -169,7 +169,8 @@ def main():
             elif int(max(n1 / n2, n2 / n1)) > args.ratio:
                 continue
             elif args.verify:
-                print(c1.hexsha, c2.hexsha, max(n1 / n2, n2 / n1))
+                print(c1.hexsha, n1, c2.hexsha, n2,
+                      '%.2f' % max(n1 / n2, n2 / n1), sep='\t')
             else:
                 database.add_commit(sha1_hex=c1.hexsha, title=c1.summary,
                                     author=c1.author.name, email=c1_email,

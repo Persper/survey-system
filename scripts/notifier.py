@@ -16,7 +16,7 @@ def parse_file(path):
     with open(path) as f:
         lines = f.readlines()
     for l in lines:
-        m = re.match(r'([\w.-]+@[\w.-]+)\s+"(.+)"', l)
+        m = re.match(r"([\w.\-\+]+@[\w.\-]+).+?'(.+?)'", l)
         if m:
             email2author[m.group(1).lower()] = m.group(2)
     return email2author
@@ -38,9 +38,9 @@ def main():
     email2author = parse_file(args.file)
 
     sg = sendgrid.SendGridAPIClient(apikey=os.environ.get('SENDGRID_API_KEY'))
-    from_email = Email('survey@persper.org', 'Persper Survey')
-    subject = 'FreeBSD Developer Survey (with a Prize)'
-    content = Content('text/html', '@ 2017 The Persper Foundation')
+    from_email = Email('survey@persper.org', 'Persper')
+    subject = 'Linux Developer Survey (with a Prize)'
+    content = Content('text/html', '@ 2018 The Persper Foundation')
 
     for r in database.list_email_project():
         link = 'http://survey.persper.org/#/entry/%s?projectId=%s' % (
@@ -50,12 +50,12 @@ def main():
         else:
             continue
         if args.test:
-            print(r['email'], name, link)
+            print(r['email'], name, link, sep='\t')
         elif args.send:
             print('Sending to ' + r['email'])
             to_email = Email(r['email'])
             m = Mail(from_email, subject, to_email, content)
-            m.template_id = '985509ac-501c-4edd-9748-b22c38726c65'
+            m.template_id = 'b93aec41-e221-44dc-be8f-6b67a99f86c2'
             m.personalizations[0].add_substitution(
               Substitution('-name-', name))
             m.personalizations[0].add_substitution(
