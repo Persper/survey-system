@@ -249,12 +249,12 @@ def list_email_project():
         print(e)
 
 
-def count_compared():
+def count_compared(project_name):
     if not _driver:
         init_driver()
     try:
         counts = _driver.session().read_transaction(
-            query.list_compared_relationship_counts)
+            query.list_compared_relationship_counts, project_name)
         return [(c['email'], c['count']) for c in counts]
     except Exception as e:
         print(e)
