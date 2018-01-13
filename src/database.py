@@ -162,6 +162,22 @@ def get_related_answers(commit, token):
         print(e)
 
 
+def get_related_answers(commit):
+    if not _driver:
+        init_driver()
+    try:
+        answers = _driver.session().read_transaction(
+            query.get_compared_relationships, commit)
+        return [{'commit1': a['commit1']['id'],
+                 'title1': a['commit1']['title'],
+                 'reason': a['outvalues']['reason'],
+                 'commit2': a['commit2']['id'],
+                 'title2': a['commit2']['title']}
+                for a in answers]
+    except Exception as e:
+        print(e)
+
+
 def next_review(project_id, token):
     if not _driver:
         init_driver()

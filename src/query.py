@@ -127,6 +127,16 @@ def get_compared_relationships(tx, commit, token):
     return result.records()
 
 
+def get_compared_relationships(tx, commit):
+    result = tx.run("MATCH (c1:Commit {id: $cid})-[o:OUTVALUES]->(c2:Commit) "
+                    "RETURN c1 AS commit1, o AS outvalues, c2 AS commit2 "
+                    "UNION "
+                    "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit {id: $cid}) "
+                    "RETURN c1 AS commit1, o AS outvalues, c2 AS commit2",
+                    cid=commit)
+    return result.records()
+
+
 def list_compared_relationships(tx, project_name):
     result = tx.run("MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit)"
                     "-[:COMMITTED_TO]->(:Project {name: $name}) "
