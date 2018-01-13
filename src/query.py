@@ -1,7 +1,7 @@
 def create_project_node(tx, project_id, name, github_url):
     result = tx.run("MERGE (p:Project {name: $name}) "
                     "ON CREATE SET p.id = $pid, p.github_url = $url, "
-                    "p.url = $url " # TODO: Replace this with dgit URL
+                    "p.url = $url "  # TODO: Replace this with dgit URL
                     "RETURN p.id AS id, p.github_url AS github_url, p.url AS url",
                     name=name, pid=project_id, url=github_url)
     return result.single()
@@ -124,6 +124,14 @@ def get_compared_relationships(tx, commit, token):
                     "MATCH (c1:Commit)-[o:OUTVALUES {email: e.email}]->(c2:Commit {id: $cid}) "
                     "RETURN c1 AS commit1, o AS outvalues, c2 AS commit2",
                     token=token, cid=commit)
+    return result.records()
+
+
+def list_compared_relationships(tx, project_name):
+    result = tx.run("MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit)"
+                    "-[:COMMITTED_TO]->(:Project {name: $name}) "
+                    "RETURN c1.id AS commit1, c2.id AS commit2, "
+                    "o.reason AS reason", name=project_name)
     return result.records()
 
 

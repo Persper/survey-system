@@ -1,11 +1,10 @@
-import re
-
 from flask import abort
 from flask import Flask
 from flask import jsonify
 from flask import request
 from flask_cors import CORS
 
+import common
 import database
 
 app = Flask(__name__)
@@ -15,45 +14,16 @@ STATUS_REQ_JSON = {'status': 1, 'message': 'A JSON request is required!'}
 STATUS_BAD_REQUEST = {'status': 2, 'message': 'Bad request format!'}
 STATUS_END = {'status': 100, 'message': 'Good job! Mission complete!'}
 
-sha1_pattern = re.compile(r'[0-9a-f]{40}')
-reason_pattern = re.compile(r'\[(.*)\] is more valuable than \[(.*)\]')
-
-
-def check_sha1(digest):
-    return not re.match(sha1_pattern, digest) is None
-
-
-def check_reason(text):
-    return not re.match(reason_pattern, text) is None
-
 
 @app.route('/survey/v1', methods=['GET'])
 def version():
     return 'The Persper Survey System API v1'
 
 
-def commit_url(project_url, commit_id):
-    match = re.match(r'git@github.com:(.+)/(.+).git', project_url)
-    if match is None:
-        match = re.match(r'http[s]?://github.com/(.+)/([^.]+)(?:\.git)?',
-                         project_url)
-    if match is None:
-        raise ValueError('Repository URL not recognized')
-    return 'https://github.com/%s/%s/commit/%s' % (
-        match.group(1), match.group(2), commit_id)
-
-
-def parse_descriptions(reason):
-    m = re.match(reason_pattern, reason)
-    if m is None:
-        return None, None
-    return m.group(1), m.group(2)
-
-
 def assemble_descriptions(commit, answers):
     final_description = None
     for a in answers:
-        d1, d2 = parse_descriptions(a['reason'])
+        d1, d2 = common.parse_descriptions(a['reason'])
         assert a['commit1'] == commit or a['commit2'] == commit
         d = d1 if a['commit1'] == commit else d2
         if d is None:
@@ -84,10 +54,10 @@ def next_question(project_id):
     d2 = assemble_descriptions(c2['id'], answers)
 
     commit1 = {'id': c1['id'], 'title': c1['title'],
-               'url': commit_url(project['url'], c1['id']),
+               'url': common.github_commit_url(project['url'], c1['id']),
                'description': d1}
     commit2 = {'id': c2['id'], 'title': c2['title'],
-               'url': commit_url(project['url'], c2['id']),
+               'url': common.github_commit_url(project['url'], c2['id']),
                'description': d2}
     question = {'id': comp['id'], 'type': 'single',
                 'commits': [commit1, commit2], 'answered': n}
@@ -102,7 +72,7 @@ def submit_answer(project_id, question_id):
         abort(403)
     if not request.json:
         return jsonify(STATUS_REQ_JSON)
-    if not check_sha1(project_id):
+    if not common.check_sha1(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
     selected = request.json.get('selected')
@@ -112,9 +82,9 @@ def submit_answer(project_id, question_id):
     # either human input or the option title (e.g., 'not comparable').
     if selected is None or reason is None:
         return jsonify(STATUS_BAD_REQUEST)
-    if not check_sha1(selected):
+    if not common.check_sha1(selected):
         selected = None
-    elif not check_reason(reason):
+    elif not common.check_reason(reason):
         return jsonify(STATUS_BAD_REQUEST)
     database.add_answer(comparison_id=question_id, valuable_commit=selected,
                         reason=reason, token=token)
@@ -138,9 +108,9 @@ def next_review(project_id):
     if c1['id'] > c2['id']:
         c1, c2 = c2, c1
     commit1 = {'id': c1['id'], 'title': c1['title'],
-               'url': commit_url(project['url'], c1['id'])}
+               'url': common.github_commit_url(project['url'], c1['id'])}
     commit2 = {'id': c2['id'], 'title': c2['title'],
-               'url': commit_url(project['url'], c2['id'])}
+               'url': common.github_commit_url(project['url'], c2['id'])}
     review['commits'] = [commit1, commit2]
 
     return jsonify({'status': 0, 'data': {'review': review}})
@@ -153,7 +123,7 @@ def submit_review(project_id, review_id):
         abort(403)
     if not request.json:
         return jsonify(STATUS_REQ_JSON)
-    if not check_sha1(project_id):
+    if not common.check_sha1(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
     comment = request.json.get('comment')
@@ -192,7 +162,7 @@ def labels(project_id):
     token = request.headers.get('X-USR-TOKEN')
     if token is None:
         abort(403)
-    if not check_sha1(project_id):
+    if not common.check_sha1(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
     builtin, customized = database.list_labels(token)
@@ -221,7 +191,7 @@ def developer_stats(project_id):
     token = request.headers.get('X-USR-TOKEN')
     if token is None:
         abort(403)
-    if not check_sha1(project_id):
+    if not common.check_sha1(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
     total, answered = database.developer_stats(token)

@@ -258,3 +258,14 @@ def count_compared(project_name):
         return [(c['email'], c['count']) for c in counts]
     except Exception as e:
         print(e)
+
+
+def list_compared(project_name):
+    if not _driver:
+        init_driver()
+    try:
+        counts = _driver.session().read_transaction(
+            query.list_compared_relationships, project_name)
+        return [(c['commit1'], c['commit2'], c['reason']) for c in counts]
+    except Exception as e:
+        print(e)
