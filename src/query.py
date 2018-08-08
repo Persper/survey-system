@@ -1,7 +1,6 @@
 def create_project_node(tx, project_id, name, github_url):
     result = tx.run("MERGE (p:Project {name: $name}) "
-                    "ON CREATE SET p.id = $pid, p.github_url = $url, "
-                    "p.url = $url "  # TODO: Replace this with dgit URL
+                    "ON CREATE SET p.id = $pid, p.github_url = $url, p.url = $url "
                     "RETURN p.id AS id, p.github_url AS github_url, p.url AS url",
                     name=name, pid=project_id, url=github_url)
     return result.single()
@@ -127,7 +126,7 @@ def get_compared_relationships(tx, commit, token):
     return result.records()
 
 
-def get_compared_relationships(tx, commit):
+def get_compared_relationships_unsafe(tx, commit):
     result = tx.run("MATCH (c1:Commit {id: $cid})-[o:OUTVALUES]->(c2:Commit) "
                     "RETURN c1 AS commit1, o AS outvalues, c2 AS commit2 "
                     "UNION "

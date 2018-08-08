@@ -5,7 +5,7 @@ import secrets
 from neo4j.v1 import basic_auth
 from neo4j.v1 import GraphDatabase
 
-import query
+from . import query
 
 
 _driver = None
@@ -87,7 +87,7 @@ def add_reviewer(email):
         print(e)
 
 
-def add_commit(*, sha1_hex, title, author, email, project_id):
+def add_commit(*, sha1_hex, title, email, project_id):
     if not _driver:
         init_driver()
     try:
@@ -162,7 +162,7 @@ def get_related_answers(commit, token):
         print(e)
 
 
-def get_related_answers(commit):
+def get_related_answers_unsafe(commit):
     if not _driver:
         init_driver()
     try:

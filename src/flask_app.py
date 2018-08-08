@@ -4,8 +4,8 @@ from flask import jsonify
 from flask import request
 from flask_cors import CORS
 
-import common
-import database
+from . import common
+from . import database
 
 app = Flask(__name__)
 CORS(app)

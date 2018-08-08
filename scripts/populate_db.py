@@ -77,7 +77,7 @@ def parse_emails(file_path):
     emails = []
     with open(file_path) as f:
         for line in f:
-            match = re.match(r'[\w.\-\+]+@[\w.\-]+', line)
+            match = re.match(r'[\w.\-+]+@[\w.\-]+', line)
             if match:
                 emails.append(match.group())
     return emails
@@ -129,6 +129,7 @@ def main():
     github_url = repo.remotes.origin.url
     user_name, repo_name = parse_repo_url(github_url)
     project_name = '%s-%s' % (user_name, repo_name)
+    project_id = "[Project ID]"
     if not args.stats and not args.verify:
         project_id = database.add_project(project_name, github_url)
 
@@ -151,6 +152,7 @@ def main():
             print(author, compose_url(token, project_id))
 
         n_added = 0
+        selected = []
         while n_added < args.n:
             selected = random.sample(email2commits[author],
                                      min(args.n * 2, len(email2commits[author])))
@@ -175,11 +177,9 @@ def main():
                           '%.2f' % max(n1 / n2, n2 / n1), sep='\t')
                 else:
                     database.add_commit(sha1_hex=c1.hexsha, title=c1.summary,
-                                        author=c1.author.name, email=c1_email,
-                                        project_id=project_id)
+                                        email=c1_email, project_id=project_id)
                     database.add_commit(sha1_hex=c2.hexsha, title=c2.summary,
-                                        author=c2.author.name, email=c2_email,
-                                        project_id=project_id)
+                                        email=c2_email, project_id=project_id)
                     database.add_comparison(c1.hexsha, c2.hexsha, author)
 
                 # Below is for the check purpose.
