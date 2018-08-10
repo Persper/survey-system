@@ -114,19 +114,27 @@ def add_comparison(commit1, commit2, email):
         print(e)
 
 
+def count_compared(token):
+    if not _driver:
+        init_driver()
+    try:
+        return _driver.session().read_transaction(
+                query.count_compared_relationships, token)
+    except Exception as e:
+        print(e)
+        return -1
+
+
 def next_comparison(token):
     if not _driver:
         init_driver()
-    n = -1
     try:
-        n = _driver.session().read_transaction(
-            query.count_compared_relationships, token)
         comparison, commit1, commit2 = _driver.session().read_transaction(
-            query.next_comparison_node, token)
-        return comparison, commit1, commit2, n
+                query.next_comparison_node, token)
+        return comparison, commit1, commit2
     except Exception as e:
         print(e)
-        return None, None, None, n
+        return None, None, None
 
 
 def add_answer(*, comparison_id, valuable_commit, reason, token):
@@ -265,7 +273,7 @@ def list_email_project():
         print(e)
 
 
-def count_compared(project_name):
+def stats_compared(project_name):
     if not _driver:
         init_driver()
     try:
