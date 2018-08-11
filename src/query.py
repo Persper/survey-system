@@ -97,6 +97,24 @@ def create_reviewer_node(tx, email, token):
            email=email, token=token)
 
 
+def next_other_compared_relationship(tx, project_id, token, threshold):
+    result = tx.run("MATCH (e:Email {token: $token}) "
+                    "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
+                    "WHERE o.email <> e AND "
+                    "      (c1)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
+                    "      (c2)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
+                    "      (:Email {email: o.email})-[:AUTHORS]->(c1) AND "
+                    "      (:Email {email: o.email})-[:AUTHORS]->(c2) "
+                    "WITH c1, c2, count(o) AS self "
+                    "MATCH (c1)-[o:OUTVALUES]->(c2) "
+                    "WITH c1, c2, self, count(o) AS n "
+                    "WHERE n - self <= $threshold "
+                    "RETURN c1, c2 ORDER BY c1.id LIMIT 1",
+                    pid=project_id, token=token, threshold=threshold)
+    record = result.single()
+    return record['c1'], record['c2']
+
+
 def next_compared_relationship(tx, project_id, token):
     result = tx.run("MATCH (:Reviewer {token: $token}) "
                     "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
