@@ -133,7 +133,7 @@ def next_comparison(token):
     try:
         comparison, commit1, commit2 = _driver.session().read_transaction(
                 query.next_comparison_node, token)
-        return comparison, commit1, commit2
+        return comparison['id'], commit1, commit2
     except Exception as e:
         print(e)
         return None, None, None

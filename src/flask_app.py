@@ -45,8 +45,8 @@ def next_question(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
     n = database.count_compared(token)
-    comp, c1, c2 = database.next_comparison(token)
-    if comp is None:
+    comp_id, c1, c2 = database.next_comparison(token)
+    if comp_id is None:
         return jsonify(STATUS_END)
 
     answers = database.get_related_answers(c1['id'], token)
@@ -60,7 +60,7 @@ def next_question(project_id):
     commit2 = {'id': c2['id'], 'title': c2['title'],
                'url': common.github_commit_url(project['url'], c2['id']),
                'description': d2}
-    question = {'id': comp['id'], 'type': 'single',
+    question = {'id': comp_id, 'type': 'single',
                 'commits': [commit1, commit2], 'answered': n}
 
     return jsonify({'status': 0, 'data': {'question': question}})
