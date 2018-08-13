@@ -127,12 +127,12 @@ def count_compared(token):
         return -1
 
 
-def next_comparison(token):
+def next_comparison(project_id, token):
     if not _driver:
         init_driver()
     try:
-        comparison, commit1, commit2 = _driver.session().read_transaction(
-                query.next_comparison_node, token)
+        comparison, commit1, commit2 = _driver.session().read_transaction(query.next_comparison_node,
+                                                                          project_id, token)
         return comparison['id'], commit1, commit2
     except Exception as e:
         print(e)
@@ -153,7 +153,7 @@ def next_other_comparison(project_id, token, threshold):
         commit1, commit2 = _driver.session().read_transaction(query.next_other_compared_relationship,
                                                               project_id, token, threshold)
         comparison_id = generate_comparison_id(commit1['id'], commit2['id'])
-        return comparison_id, commit1, commit2
+        return '-' + comparison_id, commit1, commit2
     except Exception as e:
         print(e)
         return None, None, None
@@ -164,15 +164,15 @@ def add_answer(*, comparison_id, valuable_commit, reason, token):
         init_driver()
     try:
         tx = _driver.session().begin_transaction()
-        c1, c2 = query.delete_comparison_node(tx, comparison_id, token)
+        if not comparison_id.startswith('-'):
+            c1, c2 = query.delete_comparison_node(tx, comparison_id, token)
         if valuable_commit is None:
             tx.commit()
             return
         if c2 == valuable_commit:
             c1, c2 = c2, c1
         assert c1 == valuable_commit
-        query.create_compared_relationship(
-            tx, comparison_id, c1, c2, reason, token)
+        query.create_compared_relationship(tx, comparison_id, c1, c2, reason, token)
         tx.commit()
     except Exception as e:
         print(e)
