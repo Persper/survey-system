@@ -54,12 +54,12 @@ def create_comparison_node(tx, comparison_id, commit1, commit2, email):
            cid=comparison_id, c1=commit1, c2=commit2, email=email)
 
 
-def next_comparison_node(tx, token):
+def next_comparison_node(tx, project_id, token):
     result = tx.run("MATCH (:Email {token: $token})-[:COMPARES]->(c:Comparison) "
-                    "WITH c ORDER BY c.id LIMIT 1 "
-                    "MATCH (c1:Commit {id: c.commit1}), (c2:Commit {id: c.commit2}) "
-                    "RETURN c, c1, c2",
-                    token=token)
+                    "WHERE (c1:Commit {id: c.commit1})-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
+                    "      (c2:Commit {id: c.commit2})-[:COMMITTED_TO]->(:Project {id: $pid}) "
+                    "RETURN c, c1, c2 ORDER BY c.id LIMIT 1",
+                    pid=project_id, token=token)
     record = result.single()
     return record['c'], record['c1'], record['c2']
 
