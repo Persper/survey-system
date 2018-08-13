@@ -11,7 +11,7 @@ from . import query
 _driver = None
 
 
-def get_comparison_id(commit1: str, commit2: str):
+def generate_comparison_id(commit1: str, commit2: str):
     return commit1 + commit2 if commit1 < commit2 else commit2 + commit1
 
 
@@ -108,7 +108,7 @@ def add_comparison(commit1, commit2, email):
     if not _driver:
         init_driver()
     try:
-        cid = get_comparison_id(commit1, commit2)
+        cid = generate_comparison_id(commit1, commit2)
         _driver.session().write_transaction(query.create_comparison_node,
                                             cid, commit1, commit2, email)
         return cid
@@ -134,6 +134,26 @@ def next_comparison(token):
         comparison, commit1, commit2 = _driver.session().read_transaction(
                 query.next_comparison_node, token)
         return comparison, commit1, commit2
+    except Exception as e:
+        print(e)
+        return None, None, None
+
+
+def next_other_comparison(project_id, token, threshold):
+    """
+    Select the next pair of commits for comparison that is not authored by the caller.
+    :param project_id: the project to select commits from
+    :param token: the credential of the caller
+    :param threshold: the max number of other developers that have compared the pair
+    :return: comparison ID, first commit object, and second commit object
+    """
+    if not _driver:
+        init_driver()
+    try:
+        commit1, commit2 = _driver.session().read_transaction(query.next_other_compared_relationship,
+                                                              project_id, token, threshold)
+        comparison_id = generate_comparison_id(commit1['id'], commit2['id'])
+        return comparison_id, commit1, commit2
     except Exception as e:
         print(e)
         return None, None, None
