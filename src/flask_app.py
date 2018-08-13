@@ -45,9 +45,18 @@ def next_question(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
     n = database.count_compared(token)
-    comp_id, c1, c2 = database.next_comparison(token)
+    if n % 2 == 0:
+        comp_id, c1, c2 = database.next_comparison(token)
+        if comp_id is None:
+            comp_id, c1, c2 = database.next_other_comparison(project_id, token, 0)
+    else:
+        comp_id, c1, c2 = database.next_other_comparison(project_id, token, 0)
+        if comp_id is None:
+            comp_id, c1, c2 = database.next_comparison(token)
     if comp_id is None:
-        return jsonify(STATUS_END)
+        comp_id, c1, c2 = database.next_other_comparison(project_id, token, 1)
+        if comp_id is None:
+            return jsonify(STATUS_END)
 
     answers = database.get_related_answers(c1['id'], token)
     d1 = assemble_descriptions(c1['id'], answers)
