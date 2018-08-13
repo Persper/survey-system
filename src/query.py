@@ -98,6 +98,14 @@ def create_reviewer_node(tx, email, token):
 
 
 def next_other_compared_relationship(tx, project_id, token, threshold):
+    """
+    Selects a pair of commits compared by their author but not sufficiently compared by others.
+    :param tx: the transaction to run the query
+    :param project_id: the project to select commits from
+    :param token: the credential of the caller
+    :param threshold: the max number of other developers that have compared the pair
+    :return: a selected pair of commits
+    """
     result = tx.run("MATCH (e:Email {token: $token}) "
                     "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
                     "WHERE o.email <> e AND "
@@ -118,14 +126,11 @@ def next_other_compared_relationship(tx, project_id, token, threshold):
 def next_compared_relationship(tx, project_id, token):
     result = tx.run("MATCH (:Reviewer {token: $token}) "
                     "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
-                    "WHERE (c1)-[:COMMITTED_TO]->(:Project {id: $pid}) "
-                    "AND (c2)-[:COMMITTED_TO]->(:Project {id: $pid}) "
-                    "AND ("
-                    "NOT (c1)-[:LABELED_WITH {comparison_id: o.id}]->(:Label) "
-                    "OR "
-                    "NOT (c2)-[:LABELED_WITH {comparison_id: o.id}]->(:Label)"
-                    ") "
-                    "AND (NOT EXISTS(o.comment)) "
+                    "WHERE (c1)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
+                    "      (c2)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
+                    "      (NOT (c1)-[:LABELED_WITH {comparison_id: o.id}]->(:Label) OR "
+                    "       NOT (c2)-[:LABELED_WITH {comparison_id: o.id}]->(:Label)) AND "
+                    "      NOT EXISTS(o.comment) "
                     "RETURN o, c1, c2 ORDER BY o.id LIMIT 1",
                     pid=project_id, token=token)
     record = result.single()
