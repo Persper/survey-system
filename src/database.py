@@ -11,6 +11,10 @@ from . import query
 _driver = None
 
 
+def get_comparison_id(commit1: str, commit2: str):
+    return commit1 + commit2 if commit1 < commit2 else commit2 + commit1
+
+
 def neo4j_credential():
     config = configparser.ConfigParser()
     config.read('survey.ini')
@@ -104,9 +108,7 @@ def add_comparison(commit1, commit2, email):
     if not _driver:
         init_driver()
     try:
-        if commit1 > commit2:
-            commit1, commit2 = commit2, commit1
-        cid = commit1 + commit2
+        cid = get_comparison_id(commit1, commit2)
         _driver.session().write_transaction(query.create_comparison_node,
                                             cid, commit1, commit2, email)
         return cid
