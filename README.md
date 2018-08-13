@@ -8,10 +8,9 @@ The Persper survey system
 # Install dependencies.
 npm install
 
-# Make a config file.
-cp src/config.sample.js src/config.js
 # Change any config.
 nano src/config.js
+# cp src/config.sample.js src/config.js
 
 # Serve with hot reload at localhost:8080
 npm run dev

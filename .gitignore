@@ -18,5 +18,4 @@ __pycache__/
 
 # Persper specific
 *.env
-config.js
 *.ini
