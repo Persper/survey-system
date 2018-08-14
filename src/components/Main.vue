@@ -1,8 +1,8 @@
 <template>
   <div class="container">
-    <h2>Greeting. </h2>
+    <h2>Greetings!</h2>
     <p>
-      Welcome to Persper survey system.
+      Welcome to the Persper survey system.
     </p>
   </div>
 </template>
