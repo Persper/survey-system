@@ -5,7 +5,7 @@ import secrets
 from neo4j.v1 import basic_auth
 from neo4j.v1 import GraphDatabase
 
-from . import query
+import query
 
 
 _driver = None
