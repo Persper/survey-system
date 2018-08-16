@@ -1,11 +1,9 @@
 #!/usr/bin/env python3.6
 
-import os
 import git
 import argparse
 import subprocess
 import glob
-import random
 
 
 def get_immediate_subdirectories(a_dir):

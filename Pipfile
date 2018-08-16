@@ -8,6 +8,8 @@ name = "pypi"
 GitPython = "*"
 Flask = "*"
 Flask-Cors = "*"
+requests = "*"
+sendgrid = "*"
 
 [dev-packages]
 
