@@ -3,15 +3,14 @@ def create_project_node(tx, project_id, name, github_url):
                     "ON CREATE SET p.id = $pid, p.github_url = $url, p.url = $url "
                     "RETURN p.id AS id, p.github_url AS github_url, p.url AS url",
                     name=name, pid=project_id, url=github_url)
-    return result.single()
+    return result.single() if result is not None else None
 
 
 def get_project_node(tx, project_id):
     result = tx.run("MATCH (p:Project {id: $project_id}) RETURN p",
                     project_id=project_id)
-    records = list(result.records())
-    assert len(records) == 1
-    return records[0]
+    record = result.single() if result is not None else None
+    return record[0] if record is not None else None
 
 
 def create_developer_email(tx, name, email, token):
@@ -25,9 +24,8 @@ def create_developer_email(tx, name, email, token):
 def get_developer_token(tx, email):
     result = tx.run("MATCH (e:Email {email: $email}) "
                     "RETURN e.token", email=email)
-    records = list(result.records())
-    assert len(records) == 1
-    return records[0]
+    record = result.single() if result is not None else None
+    return record[0] if record is not None else None
 
 
 def create_commit_node(tx, sha1_hex, title):
@@ -65,10 +63,8 @@ def next_comparison_node(tx, project_id, token):
                     "      (c2:Commit {id: c.commit2})-[:COMMITTED_TO]->(:Project {id: $pid}) "
                     "RETURN c, c1, c2",
                     pid=project_id, token=token)
-    record = result.single()
-    if record is None:
-        return None, None, None
-    return record['c'], record['c1'], record['c2']
+    record = result.single() if result is not None else None
+    return (record['c'], record['c1'], record['c2']) if record is not None else (None, None, None)
 
 
 def delete_comparison_node(tx, comparison_id, token):
@@ -77,16 +73,15 @@ def delete_comparison_node(tx, comparison_id, token):
                     "DETACH DELETE n "
                     "RETURN c1, c2",
                     cid=comparison_id, token=token)
-    record = result.single()
-    if record is None:
-        return None, None
-    return record['c1'], record['c2']
+    record = result.single() if result is not None else None
+    return (record['c1'], record['c2']) if record is not None else (None, None)
 
 
 def count_comparison_nodes(tx, token):
     result = tx.run("MATCH (:Email {token: $token})-[:COMPARES]->(c:Comparison) "
                     "RETURN count(c)", token=token)
-    return result.single().value()
+    record = result.single() if result is not None else None
+    return record[0] if record is not None else None
 
 
 def create_compared_relationship(tx, comparison_id, more_valuable_commit,
@@ -128,10 +123,8 @@ def next_other_compared_relationship(tx, project_id, token, threshold):
                     "WHERE n - self <= $threshold "
                     "RETURN c1, c2 ORDER BY c1.id LIMIT 1",
                     pid=project_id, token=token, threshold=threshold)
-    record = result.single()
-    if record is None:
-        return None, None
-    return record['c1'], record['c2']
+    record = result.single() if result is not None else None
+    return (record['c1'], record['c2']) if record is not None else (None, None)
 
 
 def next_compared_relationship(tx, project_id, token):
@@ -144,10 +137,8 @@ def next_compared_relationship(tx, project_id, token):
                     "      NOT EXISTS(o.comment) "
                     "RETURN o, c1, c2 ORDER BY o.id LIMIT 1",
                     pid=project_id, token=token)
-    record = result.single()
-    if record is None:
-        return None, None, None
-    return record['o'], record['c1'], record['c2']
+    record = result.single() if result is not None else None
+    return (record['o'], record['c1'], record['c2']) if record is not None else (None, None, None)
 
 
 def get_compared_relationships(tx, commit, token):
@@ -184,7 +175,8 @@ def count_compared_relationships(tx, token):
     result = tx.run("MATCH (e:Email {token: $token}) "
                     "MATCH (:Commit)-[r:OUTVALUES {email: e.email}]->(:Commit) "
                     "RETURN COUNT(r)", token=token)
-    return result.single().value()
+    record = result.single() if result is not None else None
+    return record[0] if record is not None else None
 
 
 def create_label_node(tx, label_id, label_name, genre, token):
@@ -193,7 +185,8 @@ def create_label_node(tx, label_id, label_name, genre, token):
                     "ON CREATE SET l.id = $id "
                     "RETURN l.id" % genre,
                     id=label_id, name=label_name, token=token)
-    return result.single().value()
+    record = result.single() if result is not None else None
+    return record[0] if record is not None else None
 
 
 def list_label_nodes(tx, token):
@@ -228,7 +221,8 @@ def count_reviewed_relationships(tx, token):
                     "AND (c2)-[:LABELED_WITH {email: r.email}]->(:Label)) "
                     "OR EXISTS(o.comment)"
                     "RETURN count(o.id)", token=token)
-    return result.single().value()
+    record = result.single() if result is not None else None
+    return record[0] if record is not None else None
 
 
 def list_email_project(tx):
