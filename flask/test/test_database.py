@@ -1,6 +1,9 @@
 #!/usr/bin/env python3.6
 
 from database import *
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 def main():
@@ -17,13 +20,16 @@ def main():
     add_label('huge', 'Builtin', reviewer)
 
     # Loads the 1st question.
-    # This is an out-of-order complicated path.
     add_commit(sha1_hex='915330ffc269eed821d652292993ff75b717a66b',
                title='new image for tweets which are retweeted by user',
                email='5h3ll3x@gmail.com',
                project_id=project_id)
-    cid = add_comparison('b35414f93aa5caaff115791d4040271047df25b3',
-                         '915330ffc269eed821d652292993ff75b717a66b',
+    add_commit(sha1_hex='b35414f93aa5caaff115791d4040271047df25b3',
+               title='disable the position saving',
+               email='5h3ll3x@gmail.com',
+               project_id=project_id)
+    cid = add_comparison('915330ffc269eed821d652292993ff75b717a66b',
+                         'b35414f93aa5caaff115791d4040271047df25b3',
                          'w@persper.org')
     n = count_compared(developer)
     q, c1, c2 = next_comparison(project_id, developer)
@@ -37,10 +43,6 @@ def main():
                valuable_commit='b35414f93aa5caaff115791d4040271047df25b3',
                reason='第二个 commit 是 disable a feature，第一个是优化体验。',
                token=developer)
-    add_commit(sha1_hex='b35414f93aa5caaff115791d4040271047df25b3',
-               title='disable the position saving',
-               email='5h3ll3x@gmail.com',
-               project_id=project_id)
     print('Answered Question #%d: %s' % (n, cid))
     next_n = count_compared(developer)
     test, _, _ = next_comparison(project_id, developer)
