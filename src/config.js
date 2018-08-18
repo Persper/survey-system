@@ -1,4 +1,4 @@
 
 export default {
-  API_BASE: 'http://api.persper.org/survey/v1'
+  API_BASE: 'https://api.persper.org/survey/v1'
 }
