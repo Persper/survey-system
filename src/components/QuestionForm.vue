@@ -20,7 +20,7 @@
         </div>
         <div class="commit-comment">
           <span v-if="selectedOption.constructor === String && selectedOption.length > 3">
-          Thus, Commit <code>{{shortHash(selectedOption)}}</code> is more valuable than Commit <code>{{shortHash(notSelected.id)}}</code>.</span>
+          Thus, Commit <code>{{shortHash(selectedOption)}}</code> is more important than Commit <code>{{shortHash(notSelected.id)}}</code>.</span>
         </div>
       </div>
       <div class="buttons">
@@ -61,10 +61,6 @@ export default {
             link: x.url
           }
         })
-        ret = ret.concat([
-          {id: -1, text: 'Really not comparable (or both are trivial)!'},
-          {id: -2, text: 'Problematic (e.g., one commit covers too many different changes).'}
-        ])
         return ret
       }
       return []

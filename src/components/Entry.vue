@@ -3,12 +3,12 @@
     <wireframe>
     <div class="container">
       <div class="title">
-        Welcome to the Persper Foundation's code value survey!
+        Welcome to the Persper Foundation Code Value survey!
         <div class="guideline">
-          <p>Thank you for agreeing to participate this survey for evaluating code contributions. The survey result will help innovate the rewarding mechanism for open source developers and may lead to more financially sustainable open source development.
+          <p>Thank you for participating in this survey for evaluating code contributions. The survey result will help innovate the recognizing and rewarding mechanisms for open source developers and may lead to more sustainable open source development.
           </p>
           <p>
-          In the survey, you will compare pairs of <em>your own</em> commits to the following project.
+          You will compare pairs of commits of the following project that you have contributed to.
           </p>
         </div>
       </div>
@@ -16,39 +16,16 @@
         <div class="project-name">{{ projectName }}</div>
         <div class="project-info-body">
           <div class="rows">
-            <!--
-            <div class="row">
-              <div class="label">Persper Repo</div>
-              <div class="value"><a href="https://persper.org/{%project_name%}">https://persper.org/{%project_name%}</a></div>
-            </div>
-            <div class="row">
-              <div class="label">Persper Index</div>
-              <div class="value">{%index%}</div>
-            </div>
-            <div class="row">
-              <div class="label">Commits</div>
-              <div class="value">{%count%}</div>
-            </div>
-            -->
             <div class="row">
               <div class="label">Github Repo</div>
               <div class="value"><a :href="githubUrl">{{githubUrl}}</a></div>
             </div>
           </div>
-              <!--
-          <div class="explanation">
-            <div class="explanation-content">
-              Here we need to introduce what's persper repo and our decentralized git system. blah blah 
-              <a href="">Learn more</a>
-              
-            </div>
-          </div>
-              --> 
         </div>
       </div>
       <div class="survey-info">
         <p>
-          You have compared <em>{{answered}}</em> out of <em>{{total}}</em> pairs of your commits. You do not have to compare them all. Please feel free to stop/resume anytime.
+          You have compared <em>{{answered}}</em> commits. Please feel free to stop and resume anytime.
         </p>
         <p class="left">
           <button class="button" v-on:click="gotoQuestionView">Answer Questions</button>
