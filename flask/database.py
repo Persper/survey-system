@@ -12,8 +12,15 @@ import query
 _driver = None
 
 
-def generate_comparison_id(commit1: str, commit2: str):
+def compose_comparison_id(commit1: str, commit2: str):
     return commit1 + commit2 if commit1 < commit2 else commit2 + commit1
+
+
+def parse_comparison_id(comp_id: str):
+    n = len(comp_id)
+    assert n % 2 == 0
+    half = int(n / 2)
+    return comp_id[:half], comp_id[half:]
 
 
 def neo4j_credential():
@@ -42,8 +49,8 @@ def add_project(name, github_url):
             return None
         assert project['id'] == pid
         if project['github_url'] != github_url:
-            logging.warn('Existing project %s with a different URL: %s => %s' %
-                         (name, project['github_url'], github_url))
+            logging.warning('Existing project %s with a different URL: %s => %s' %
+                            (name, project['github_url'], github_url))
             return None
         return pid
     except Exception:
@@ -122,11 +129,11 @@ def add_comparison(commit1, commit2, email):
         init_driver()
     # noinspection PyBroadException
     try:
-        cid = generate_comparison_id(commit1, commit2)
+        cid = compose_comparison_id(commit1, commit2)
         _driver.session().write_transaction(query.create_comparison_node,
                                             cid, commit1, commit2, email)
         return cid
-    except Exception as e:
+    except Exception:
         logging.exception("Failed to add comparison: %s vs. %s for %s" % (commit1, commit2, email))
         return None
 
@@ -174,9 +181,9 @@ def next_other_comparison(project_id, token, threshold):
                                                               project_id, token, threshold)
         if commit1 is None or commit2 is None:
             return None, commit1, commit2
-        comparison_id = generate_comparison_id(commit1['id'], commit2['id'])
+        comparison_id = compose_comparison_id(commit1['id'], commit2['id'])
         return '-' + comparison_id, commit1, commit2
-    except Exception as e:
+    except Exception:
         logging.exception("Failed to get next comparison authored by others for token: " + token)
         return None, None, None
 
@@ -187,7 +194,9 @@ def add_answer(*, comparison_id, valuable_commit, reason, token):
     # noinspection PyBroadException
     try:
         tx = _driver.session().begin_transaction()
-        if not comparison_id.startswith('-'):
+        if comparison_id.startswith('-'):
+            c1, c2 = parse_comparison_id(comparison_id[1:])
+        else:
             c1, c2 = query.delete_comparison_node(tx, comparison_id, token)
         if valuable_commit is None:
             tx.commit()
@@ -234,7 +243,7 @@ def get_related_answers_unsafe(commit):
                  'commit2': a['commit2']['id'],
                  'title2': a['commit2']['title']}
                 for a in answers]
-    except Exception as e:
+    except Exception:
         logging.exception("Failed to retrieve answers for commit: " + commit)
         return None
 
@@ -277,9 +286,9 @@ def list_labels(token):
         rec_builtin, rec_custom = _driver.session().read_transaction(
             query.list_label_nodes, token)
         builtin = [{'id': r['label']['id'], 'name': r['label']['name']}
-                   for r in rec_builtin] if not rec_builtin is None else []
+                   for r in rec_builtin] if rec_builtin is not None else []
         custom = [{'id': r['label']['id'], 'name': r['label']['name']}
-                  for r in rec_custom] if not rec_custom is None else []
+                  for r in rec_custom] if rec_custom is not None else []
         return builtin, custom
     except Exception:
         logging.exception("Failed to list labels for token: " + token)
@@ -300,11 +309,12 @@ def add_review(*, comparison_id, commit_id, label_ids, token):
 def add_comment(comparison_id, comment, token):
     if not _driver:
         init_driver()
+    # noinspection PyBroadException
     try:
         _driver.session().write_transaction(query.create_comment_property,
                                             comparison_id, comment, token)
     except Exception:
-        logging.exception("Failed to add comment for comparison ID: (token = %s)" % (comparison_id, token))
+        logging.exception("Failed to add comment for comparison ID: %s (token = %s)" % (comparison_id, token))
 
 
 def developer_stats(token):
