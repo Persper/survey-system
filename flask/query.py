@@ -112,7 +112,7 @@ def next_other_compared_relationship(tx, project_id, token, threshold):
     """
     result = tx.run("MATCH (e:Email {token: $token}) "
                     "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
-                    "WHERE o.email <> e AND "
+                    "WHERE o.email <> e.email AND "
                     "      (c1)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
                     "      (c2)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
                     "      (:Email {email: o.email})-[:AUTHORS]->(c1) AND "
