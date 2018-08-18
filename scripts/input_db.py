@@ -63,10 +63,15 @@ def main():
                     token = database.get_developer_token(email)
                     if token is None:
                         token = database.add_developer(email.split('@')[0], email)
-                    print(email, compose_url(token, project_id))
+                    print(project, email, compose_url(token, project_id))
                 for pair in pairs:
-                    c1 = repo.commit(pair[0])
-                    c2 = repo.commit(pair[1])
+                    try:
+                        c1 = repo.commit(pair[0])
+                        c2 = repo.commit(pair[1])
+                    except Exception as e:
+                        print(e)
+                        print("Project: " + project)
+                        continue
 
                     c1_email = c1.author.email.lower()
                     c2_email = c2.author.email.lower()
