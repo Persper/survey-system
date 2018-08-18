@@ -1,7 +1,7 @@
 <template>
   <div class="question-form">
     <div v-if="question">
-      <div class="progress">#{{ progress.answered }} Question</div>
+      <div class="progress">Question #{{ progress.answered }} (up to 30)</div>
       <div class="question">{{ questionTitle }}</div>
       <ul class="options">
         <li v-for="item in options" class="option-wrapper">

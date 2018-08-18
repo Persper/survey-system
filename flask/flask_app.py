@@ -45,6 +45,8 @@ def next_question(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
     n = database.count_compared(token)
+    if n >= 30:
+        return jsonify(STATUS_END)
     if n % 2 == 0:
         comp_id, c1, c2 = database.next_comparison(project_id, token)
         if comp_id is None:
