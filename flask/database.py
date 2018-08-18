@@ -43,8 +43,8 @@ def add_project(name, github_url):
     pid = sha1(name.encode('utf-8')).hexdigest()
     # noinspection PyBroadException
     try:
-        project = _driver.session().write_transaction(
-            query.create_project_node, pid, name, github_url)
+        project = _driver.session().write_transaction(query.create_project_node,
+                                                      pid, name, github_url)
         if project is None:
             return None
         assert project['id'] == pid
@@ -283,8 +283,8 @@ def list_labels(token):
         init_driver()
     # noinspection PyBroadException
     try:
-        rec_builtin, rec_custom = _driver.session().read_transaction(
-            query.list_label_nodes, token)
+        rec_builtin, rec_custom = _driver.session().read_transaction(query.list_label_nodes,
+                                                                     token)
         builtin = [{'id': r['label']['id'], 'name': r['label']['name']}
                    for r in rec_builtin] if rec_builtin is not None else []
         custom = [{'id': r['label']['id'], 'name': r['label']['name']}
