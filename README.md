@@ -1,38 +1,36 @@
-# persper-survey
+# Quick Start
 
-The Persper survey system
+The Persper survey system.
 
 ## Build The Front End
 
+Install dependencies.
 ``` bash
-# Install dependencies.
 npm install
+```
 
-# Change any config.
+Change the default config.
+``` bash
 nano src/config.js
 # cp src/config.sample.js src/config.js
+```
 
-# Serve with hot reload at localhost:8080
+Build in one of the following ways.
+``` bash
+For hot reload at localhost:8080
 npm run dev
 
-# Build for production with minification:
+# For production with minification
 npm run build
 
-# Build for production and view the bundle analyzer report:
+# For production and view the bundle analyzer report
 npm run build --report
 ```
 
-## Database Script
-
-``` bash
-# Clear database (DANGEROUS!):
-MATCH (n) DETACH DELETE n;
-
-# Remove comparions between same commits:
-MATCH (c:Comparison) WHERE c.commit1 = c.commit2 DETACH DELETE c;
-
-# Inspect database:
-MATCH (n) RETURN n LIMIT 25;
+Tips for [deployment on Heroku](https://devcenter.heroku.com/articles/getting-started-with-nodejs): Run the following after creating the app.
+```bash
+heroku buildpacks:set heroku/nodejs
+heroku config:set NODE_ENV=staging
 ```
 
 ## Workflow for a Survey
@@ -56,7 +54,7 @@ password=NEO4J_PASSWORD
 
 ### 2. Populate the database
 
-Two parallel approaches are available.
+Three parallel approaches are available. The third approach (2.3) is lately used and recommended.
 
 #### 2.1 Use scan_emails.py to select recent emails, typically for a small project
 
@@ -89,6 +87,12 @@ This approach depends on [stats_commit.py](https://github.com/Persper/code-analy
 # Check the output of the above command first.
 ./populate_db.py -d ~/repos/project/ -f email.list -n 50
 ```
+
+#### 2.3 Use input_db.py with a JSON file, typically for multiple projects
+
+The JSON file format should follow the output of [output_commits.py](https://github.com/Persper/survey-system/blob/master/flask/test/output_commits.py).
+
+
 
 ### 3. Send out invitations
 
