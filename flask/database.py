@@ -195,7 +195,8 @@ def add_answer(*, comparison_id, valuable_commit, reason, token):
     try:
         tx = _driver.session().begin_transaction()
         if comparison_id.startswith('-'):
-            c1, c2 = parse_comparison_id(comparison_id[1:])
+            comparison_id = comparison_id[1:]
+            c1, c2 = parse_comparison_id(comparison_id)
         else:
             c1, c2 = query.delete_comparison_node(tx, comparison_id, token)
         if valuable_commit is None:
