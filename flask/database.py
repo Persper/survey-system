@@ -165,6 +165,21 @@ def next_comparison(project_id, token):
         return None, None, None
 
 
+def next_other_comparison(project_id, token):
+    if not _driver:
+        init_driver()
+    # noinspection PyBroadException
+    try:
+        comparison, commit1, commit2 = _driver.session().read_transaction(query.next_other_comparison_node,
+                                                                          project_id, token)
+        if comparison is None:
+            return None, commit1, commit2
+        return comparison['id'], commit1, commit2
+    except Exception:
+        logging.exception("Failed to get next other comparison for token: " + token)
+        return None, None, None
+
+
 def next_other_compared(project_id, token, threshold):
     """
     Select the next pair of commits that is not authored by the caller but has been compared by others.

@@ -58,7 +58,9 @@ def next_question(project_id):
     if comp_id is None:
         comp_id, c1, c2 = database.next_other_compared(project_id, token, 1)
         if comp_id is None:
-            return jsonify(STATUS_END)
+            comp_id, c1, c2 = database.next_other_comparison(project_id, token)
+            if comp_id is None:
+                return jsonify(STATUS_END)
 
     answers = database.get_related_answers(c1['id'], token)
     d1 = assemble_descriptions(c1['id'], answers)
