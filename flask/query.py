@@ -57,11 +57,31 @@ def create_comparison_node(tx, comparison_id, commit1, commit2, email):
 
 
 def next_comparison_node(tx, project_id, token):
-    result = tx.run("MATCH (:Email {token: $token})-[:COMPARES]->(c:Comparison) "
-                    "WITH c ORDER BY c.id LIMIT 1 "
-                    "MATCH (c1:Commit {id: c.commit1})-[:COMMITTED_TO]->(:Project {id: $pid}), "
-                    "      (c2:Commit {id: c.commit2})-[:COMMITTED_TO]->(:Project {id: $pid}) "
-                    "RETURN c, c1, c2",
+    result = tx.run("MATCH (e:Email {token: $token})-[:COMPARES]->(c:Comparison) "
+                    "WITH c "
+                    "MATCH (c1:Commit {id: c.commit1})-[:COMMITTED_TO]->(:Project {id: $pid})"
+                    "<-[:COMMITTED_TO]-(c2:Commit {id: c.commit2}) "
+                    "RETURN c, c1, c2 ORDER BY c.id LIMIT 1",
+                    pid=project_id, token=token)
+    record = result.single() if result is not None else None
+    return (record['c'], record['c1'], record['c2']) if record is not None else (None, None, None)
+
+
+def next_other_comparison_node(tx, project_id, token):
+    """
+    Selects one comparison that is intended for a different developer.
+    :param tx: the transaction to run the query
+    :param project_id: the project to select commits from
+    :param token: the credential of the caller
+    :return: a selected comparison node and its two commits
+    """
+    result = tx.run("MATCH (e:Email {token: $token}) "
+                    "MATCH (o:Email)-[:COMPARES]->(c:Comparison) "
+                    "WHERE o.token <> e.token "
+                    "WITH c "
+                    "MATCH (c1:Commit {id: c.commit1})-[:COMMITTED_TO]->(:Project {id: $pid})"
+                    "<-[:COMMITTED_TO]-(c2:Commit {id: c.commit2}) "
+                    "RETURN c, c1, c2 ORDER BY c.id LIMIT 1",
                     pid=project_id, token=token)
     record = result.single() if result is not None else None
     return (record['c'], record['c1'], record['c2']) if record is not None else (None, None, None)
@@ -228,7 +248,7 @@ def count_reviewed_relationships(tx, token):
 
 def list_email_project(tx):
     result = tx.run("MATCH (e:Email)-[:AUTHORS]->(:Commit)-[:COMMITTED_TO]->(p:Project) "
-                    "RETURN DISTINCT e.email AS email, e.token AS token, p.id AS project")
+                    "RETURN DISTINCT e.email AS email, e.token AS token, p.name AS project_name, p.id AS project_id")
     return result.records()
 
 
