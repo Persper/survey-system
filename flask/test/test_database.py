@@ -170,6 +170,10 @@ def main():
                    '6decc9b03b259cf01214a610d3d50893cc6dcaea',
                    'w@persper.org')
 
+    print('\nInfo for following steps (test_flask_app.py):')
+    print('\tDeveloper token: ' + developer)
+    print('\tReviewer token: ' + reviewer)
+
 
 if __name__ == '__main__':
     main()
