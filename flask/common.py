@@ -26,11 +26,13 @@ github_project_https_pattern = re.compile(
     r'http[s]?://github.com/(.+)/([^.]+)(?:\.git)?')
 
 
-def github_commit_url(project_url, commit_id):
+def github_commit_url(project_url, commit_id, short=False):
     match = re.match(github_project_git_pattern, project_url)
     if match is None:
         match = re.match(github_project_https_pattern, project_url)
     if match is None:
         raise ValueError('Repository URL not recognized')
+    if short:
+        commit_id = commit_id[:12]
     return 'https://github.com/%s/%s/commit/%s' % (
         match.group(1), match.group(2), commit_id)

@@ -68,10 +68,10 @@ def next_question(project_id):
     d2 = assemble_descriptions(c2['id'], answers)
 
     commit1 = {'id': c1['id'], 'title': c1['title'],
-               'url': common.github_commit_url(project['url'], c1['id']),
+               'url': common.github_commit_url(project['url'], c1['id'], short=True),
                'description': d1}
     commit2 = {'id': c2['id'], 'title': c2['title'],
-               'url': common.github_commit_url(project['url'], c2['id']),
+               'url': common.github_commit_url(project['url'], c2['id'], short=True),
                'description': d2}
     question = {'id': comp_id, 'type': 'single',
                 'commits': [commit1, commit2], 'answered': n}
