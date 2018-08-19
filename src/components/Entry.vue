@@ -25,7 +25,7 @@
       </div>
       <div class="survey-info">
         <p>
-          You have compared <em>{{answered}}</em> commits. Please feel free to stop and resume anytime.
+          You have compared <em>{{answered}}</em> pairs of commits. Please feel free to stop and resume anytime.
         </p>
         <p class="left">
           <button class="button" v-on:click="gotoQuestionView">Answer Questions</button>

@@ -12,7 +12,7 @@ CORS(app)
 
 STATUS_REQ_JSON = {'status': 1, 'message': 'A JSON request is required!'}
 STATUS_BAD_REQUEST = {'status': 2, 'message': 'Bad request format!'}
-STATUS_END = {'status': 100, 'message': 'Good job! Mission complete!'}
+STATUS_END = {'status': 100, 'message': 'Mission accomplished! Thank you!'}
 
 
 @app.route('/survey/v1', methods=['GET'])
@@ -45,7 +45,7 @@ def next_question(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
     n = database.count_compared(token)
-    if n >= 30:
+    if n >= 25:
         return jsonify(STATUS_END)
     if n % 2 == 0:
         comp_id, c1, c2 = database.next_comparison(project_id, token)
