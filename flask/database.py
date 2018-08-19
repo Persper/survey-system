@@ -165,9 +165,9 @@ def next_comparison(project_id, token):
         return None, None, None
 
 
-def next_other_comparison(project_id, token, threshold):
+def next_other_compared(project_id, token, threshold):
     """
-    Select the next pair of commits for comparison that is not authored by the caller.
+    Select the next pair of commits that is not authored by the caller but has been compared by others.
     :param project_id: the project to select commits from
     :param token: the credential of the caller
     :param threshold: the max number of other developers that have compared the pair

@@ -50,13 +50,13 @@ def next_question(project_id):
     if n % 2 == 0:
         comp_id, c1, c2 = database.next_comparison(project_id, token)
         if comp_id is None:
-            comp_id, c1, c2 = database.next_other_comparison(project_id, token, 0)
+            comp_id, c1, c2 = database.next_other_compared(project_id, token, 0)
     else:
-        comp_id, c1, c2 = database.next_other_comparison(project_id, token, 0)
+        comp_id, c1, c2 = database.next_other_compared(project_id, token, 0)
         if comp_id is None:
             comp_id, c1, c2 = database.next_comparison(project_id, token)
     if comp_id is None:
-        comp_id, c1, c2 = database.next_other_comparison(project_id, token, 1)
+        comp_id, c1, c2 = database.next_other_compared(project_id, token, 1)
         if comp_id is None:
             return jsonify(STATUS_END)
 

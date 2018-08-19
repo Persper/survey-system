@@ -70,7 +70,7 @@ def next_comparison_node(tx, project_id, token):
 def next_other_comparison_node(tx, project_id, token):
     """
     Selects one comparison that is intended for a different developer.
-    :param tx: the transaction to run the query
+    :param tx: the transaction to run this query
     :param project_id: the project to select commits from
     :param token: the credential of the caller
     :return: a selected comparison node and its two commits
@@ -124,7 +124,7 @@ def create_reviewer_node(tx, email, token):
 def next_other_compared_relationship(tx, project_id, token, threshold):
     """
     Selects a pair of commits compared by their author but not sufficiently compared by others.
-    :param tx: the transaction to run the query
+    :param tx: the transaction to run this query
     :param project_id: the project to select commits from
     :param token: the credential of the caller
     :param threshold: the max number of other developers that have compared the pair
