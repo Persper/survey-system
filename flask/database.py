@@ -174,7 +174,7 @@ def next_other_comparison(project_id, token):
                                                                           project_id, token)
         if comparison is None:
             return None, commit1, commit2
-        return comparison['id'], commit1, commit2
+        return '-' + comparison['id'], commit1, commit2
     except Exception:
         logging.exception("Failed to get next other comparison for token: " + token)
         return None, None, None
