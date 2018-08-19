@@ -45,8 +45,8 @@ def main():
     parser.add_argument('-d', '--parent-dir', required=True,
                         help='parent dir of all involved repos')
     parser.add_argument('-f', '--file', required=True, help='project-email-pairs JSON file')
-    parser.add_argument('-c', '--check', action='store_true',
-                        help='check stats of chosen commits, without populating the database')
+    parser.add_argument('-i', '--input', action='store_true',
+                        help='populate the database instead of checking stats of chosen commits')
     args = parser.parse_args()
 
     with open(args.file) as f:
@@ -56,14 +56,16 @@ def main():
             github_url = repo.remotes.origin.url
             user_name, repo_name = parse_repo_url(github_url)
             project_name = '%s-%s' % (user_name, repo_name)
-            project_id = database.add_project(project_name, github_url) if not args.check else None
+            project_id = database.add_project(project_name, github_url) if args.input else None
 
             for email, pairs in dev.items():
-                if not args.check:
+                if args.input:
                     token = database.get_developer_token(email)
                     if token is None:
                         token = database.add_developer(email.split('@')[0], email)
-                    print(project, email, compose_url(token, project_id))
+                else:
+                    token = None
+                names = set()
                 for pair in pairs:
                     try:
                         c1 = repo.commit(pair[0])
@@ -76,19 +78,22 @@ def main():
                     c1_email = c1.author.email.lower()
                     c2_email = c2.author.email.lower()
                     assert c1_email == c2_email
+                    names.add(c1.author.name)
+                    names.add(c2.author.name)
 
                     n1 = c1.stats.total['lines']
                     n2 = c2.stats.total['lines']
                     record_ratio(n1, n2)
 
-                    if not args.check:
+                    if args.input:
                         database.add_commit(sha1_hex=c1.hexsha, title=c1.summary,
                                             email=c1_email, project_id=project_id)
                         database.add_commit(sha1_hex=c2.hexsha, title=c2.summary,
                                             email=c2_email, project_id=project_id)
                         database.add_comparison(c1.hexsha, c2.hexsha, email)
+                print(project, email, json.dumps(list(names)), compose_url(token, project_id), sep='\t')
 
-    if args.check:
+    if not args.input:
         s, d = sum_percents()
         print('Total number of commits:', s)
         for i, p in enumerate(d):
