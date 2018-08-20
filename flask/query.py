@@ -75,14 +75,15 @@ def next_other_comparison_node(tx, project_id, token):
     :param token: the credential of the caller
     :return: a selected comparison node and its two commits
     """
-    result = tx.run("MATCH (e:Email {token: $token}) "
-                    "MATCH (o:Email)-[:COMPARES]->(c:Comparison) "
-                    "WHERE o.token <> e.token AND "
-                    "      (NOT (:Commit {id: c.commit1})-[:OUTVALUES {email: e.email}]->(:Commit {id: c.commit2}) AND "
-                    "       NOT (:Commit {id: c.commit2})-[:OUTVALUES {email: e.email}]->(:Commit {id: c.commit1})) "
-                    "WITH c "
+    result = tx.run("MATCH (c:Comparison) "
+                    "WHERE (:Commit {id: c.commit1})-[:COMMITTED_TO]->(:Project {id: $pid})"
+                    "<-[:COMMITTED_TO]-(:Commit {id: c.commit2}) "
+                    "WITH c LIMIT 25 "
+                    "MATCH (e:Email {token: $token}) "
                     "MATCH (c1:Commit {id: c.commit1})-[:COMMITTED_TO]->(:Project {id: $pid})"
                     "<-[:COMMITTED_TO]-(c2:Commit {id: c.commit2}) "
+                    "WHERE NOT (:Commit {id: c.commit1})-[:OUTVALUES {email: e.email}]->(:Commit {id: c.commit2}) AND "
+                    "      NOT (:Commit {id: c.commit2})-[:OUTVALUES {email: e.email}]->(:Commit {id: c.commit1}) "
                     "RETURN c, c1, c2 ORDER BY c.id LIMIT 1",
                     pid=project_id, token=token)
     record = result.single() if result is not None else None
