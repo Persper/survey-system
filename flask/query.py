@@ -136,8 +136,7 @@ def next_other_compared_relationship(tx, project_id, token, threshold):
                     "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
                     "WHERE (NOT (c1)-[:OUTVALUES {email: e.email}]->(c2)) AND "
                     "      (NOT (c2)-[:OUTVALUES {email: e.email}]->(c1)) AND "
-                    "      (c1)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
-                    "      (c2)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
+                    "      (c1)-[:COMMITTED_TO]->(:Project {id: $pid})<-[:COMMITTED_TO]-(c2) AND "
                     "      (:Email {email: o.email})-[:AUTHORS]->(c1) AND "
                     "      (:Email {email: o.email})-[:AUTHORS]->(c2) "
                     "WITH c1, c2, count(o) AS self "
@@ -153,8 +152,7 @@ def next_other_compared_relationship(tx, project_id, token, threshold):
 def next_compared_relationship(tx, project_id, token):
     result = tx.run("MATCH (:Reviewer {token: $token}) "
                     "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
-                    "WHERE (c1)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
-                    "      (c2)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
+                    "WHERE (c1)-[:COMMITTED_TO]->(:Project {id: $pid})<-[:COMMITTED_TO]-(c2) AND "
                     "      (NOT (c1)-[:LABELED_WITH {comparison_id: o.id}]->(:Label) OR "
                     "       NOT (c2)-[:LABELED_WITH {comparison_id: o.id}]->(:Label)) AND "
                     "      NOT EXISTS(o.comment) "
@@ -196,9 +194,8 @@ def list_compared_relationships(tx, project_name):
 
 def count_compared_relationships(tx, project_id, token):
     result = tx.run("MATCH (e:Email {token: $token}) "
-                    "MATCH (:Commit)-[r:OUTVALUES {email: e.email}]->(:Commit) "
-                    "WHERE (:Commit {id: r.commit1})-[:COMMITTED_TO]->(:Project {id: $project})"
-                    "<-[:COMMITTED_TO]-(:Commit {id: r.commit2}) "
+                    "MATCH (c1:Commit)-[r:OUTVALUES {email: e.email}]->(c2:Commit) "
+                    "WHERE (c1)-[:COMMITTED_TO]->(:Project {id: $project})<-[:COMMITTED_TO]-(c2) "
                     "RETURN COUNT(r)", token=token, project=project_id)
     record = result.single() if result is not None else None
     return record[0] if record is not None else None
