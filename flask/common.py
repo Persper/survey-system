@@ -21,9 +21,8 @@ def parse_descriptions(reason):
     return m.group(1), m.group(2)
 
 
-github_project_git_pattern = re.compile(r'git@github.com:(.+)/(.+).git')
-github_project_https_pattern = re.compile(
-    r'http[s]?://github.com/(.+)/([^.]+)(?:\.git)?')
+github_project_git_pattern = re.compile(r'git@github.com:(.+)/(.+)')
+github_project_https_pattern = re.compile(r'http[s]?://github.com/(.+)/(.+)')
 
 
 def github_commit_url(project_url, commit_id, short=False):
@@ -32,7 +31,8 @@ def github_commit_url(project_url, commit_id, short=False):
         match = re.match(github_project_https_pattern, project_url)
     if match is None:
         raise ValueError('Repository URL not recognized')
+    host = match.group(1)
+    project = match.group(2)[:-4] if match.group(2).endswith('.git') else match.group(2)
     if short:
         commit_id = commit_id[:12]
-    return 'https://github.com/%s/%s/commit/%s' % (
-        match.group(1), match.group(2), commit_id)
+    return 'https://github.com/%s/%s/commit/%s' % (host, project, commit_id)
