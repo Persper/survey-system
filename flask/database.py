@@ -138,13 +138,13 @@ def add_comparison(commit1, commit2, email):
         return None
 
 
-def count_compared(token):
+def count_compared(project_id, token):
     if not _driver:
         init_driver()
     # noinspection PyBroadException
     try:
         return _driver.session().read_transaction(query.count_compared_relationships,
-                                                  token)
+                                                  project_id, token)
     except Exception:
         logging.exception("Failed to count compared relationships for token: " + token)
         return -1
@@ -333,7 +333,7 @@ def add_comment(comparison_id, comment, token):
         logging.exception("Failed to add comment for comparison ID: %s (token = %s)" % (comparison_id, token))
 
 
-def developer_stats(token):
+def developer_stats(project_id, token):
     if not _driver:
         init_driver()
     # noinspection PyBroadException
@@ -341,7 +341,7 @@ def developer_stats(token):
         # unanswered = _driver.session().read_transaction(query.count_comparison_nodes,
         #                                                token)
         answered = _driver.session().read_transaction(query.count_compared_relationships,
-                                                      token)
+                                                      project_id, token)
         return 25, answered
     except Exception:
         logging.exception("Failed to retrieve stats for token: " + token)

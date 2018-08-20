@@ -44,7 +44,7 @@ def next_question(project_id):
     if project is None:
         return jsonify(STATUS_BAD_REQUEST)
 
-    n = database.count_compared(token)
+    n = database.count_compared(project_id, token)
     if n >= 25:
         return jsonify(STATUS_END)
     if n % 2 == 0:
@@ -208,7 +208,7 @@ def developer_stats(project_id):
     if not common.check_sha1(project_id):
         return jsonify(STATUS_BAD_REQUEST)
 
-    total, answered = database.developer_stats(token)
+    total, answered = database.developer_stats(project_id, token)
     return jsonify({'status': 0,
                     'data': {'total': total, 'answered': answered}})
 

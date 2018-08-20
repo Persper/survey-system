@@ -194,10 +194,12 @@ def list_compared_relationships(tx, project_name):
     return result.records()
 
 
-def count_compared_relationships(tx, token):
+def count_compared_relationships(tx, project_id, token):
     result = tx.run("MATCH (e:Email {token: $token}) "
                     "MATCH (:Commit)-[r:OUTVALUES {email: e.email}]->(:Commit) "
-                    "RETURN COUNT(r)", token=token)
+                    "WHERE (:Commit {id: r.commit1})-[:COMMITTED_TO]->(:Project {id: $project})"
+                    "<-[:COMMITTED_TO]-(:Commit {id: r.commit2}) "
+                    "RETURN COUNT(r)", token=token, project=project_id)
     record = result.single() if result is not None else None
     return record[0] if record is not None else None
 
