@@ -124,27 +124,31 @@ def create_reviewer_node(tx, email, token):
            email=email, token=token)
 
 
-def next_other_compared_relationship(tx, project_id, token):
+def next_other_compared_relationship(tx, project_id, token, threshold):
     """
     Selects a pair of commits compared by their author but not sufficiently compared by others.
     :param tx: the transaction to run this query
     :param project_id: the project to select commits from
     :param token: the credential of the caller
-    :return: a selected pair of commits, and how many times it has been compared by others
+    :param threshold: the max number of other developers that have compared the pair
+    :return: a selected pair of commits
     """
     result = tx.run("MATCH (e:Email {token: $token}) "
-                    "MATCH (:Email {email: o.email})-[:AUTHORS]->(c1:Commit)-[o:OUTVALUES]->(c2:Commit)"
-                    "<-[:AUTHORS]-(:Email {email: o.email}) "
+                    "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
                     "WHERE (NOT (c1)-[:OUTVALUES {email: e.email}]->(c2)) AND "
                     "      (NOT (c2)-[:OUTVALUES {email: e.email}]->(c1)) AND "
-                    "      (c1)-[:COMMITTED_TO]->(:Project {id: $pid})<-[:COMMITTED_TO]-(c2) "
-                    "WITH c1, c2, count(o) as self "
-                    "MATCH (c1)-[o1:OUTVALUES]->(c2), (c2)-[o2:OUTVALUES]->(c1) "
-                    "WITH c1, c2, count(o1) + count(o2) - self AS n "
-                    "RETURN c1, c2, n ORDER BY n, c1.id LIMIT 1",
-                    pid=project_id, token=token)
+                    "      (c1)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
+                    "      (c2)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
+                    "      (:Email {email: o.email})-[:AUTHORS]->(c1) AND "
+                    "      (:Email {email: o.email})-[:AUTHORS]->(c2) "
+                    "WITH c1, c2, count(o) AS self "
+                    "MATCH (c1)-[o:OUTVALUES]->(c2) "
+                    "WITH c1, c2, self, count(o) AS n "
+                    "WHERE n - self <= $threshold "
+                    "RETURN c1, c2 ORDER BY c1.id LIMIT 1",
+                    pid=project_id, token=token, threshold=threshold)
     record = result.single() if result is not None else None
-    return (record['c1'], record['c2'], record['n']) if record is not None else (None, None, None)
+    return (record['c1'], record['c2']) if record is not None else (None, None)
 
 
 def next_compared_relationship(tx, project_id, token):

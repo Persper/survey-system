@@ -180,26 +180,27 @@ def next_other_comparison(project_id, token):
         return None, None, None
 
 
-def next_other_compared(project_id, token):
+def next_other_compared(project_id, token, threshold):
     """
     Select the next pair of commits that is not authored by the caller but has been compared by others.
     :param project_id: the project to select commits from
     :param token: the credential of the caller
-    :return: comparison ID, 1st commit object, 2nd commit object, and how many times it has been compared by others
+    :param threshold: the max number of other developers that have compared the pair
+    :return: comparison ID, first commit object, and second commit object
     """
     if not _driver:
         init_driver()
     # noinspection PyBroadException
     try:
-        commit1, commit2, n = _driver.session().read_transaction(query.next_other_compared_relationship,
-                                                                 project_id, token)
+        commit1, commit2 = _driver.session().read_transaction(query.next_other_compared_relationship,
+                                                              project_id, token, threshold)
         if commit1 is None or commit2 is None:
-            return None, commit1, commit2, n
+            return None, commit1, commit2
         comparison_id = compose_comparison_id(commit1['id'], commit2['id'])
-        return '-' + comparison_id, commit1, commit2, n
+        return '-' + comparison_id, commit1, commit2
     except Exception:
         logging.exception("Failed to get next comparison authored by others for token: " + token)
-        return None, None, None, None
+        return None, None, None
 
 
 def add_answer(*, comparison_id, valuable_commit, reason, token):

@@ -50,22 +50,17 @@ def next_question(project_id):
     if n % 2 == 0:
         comp_id, c1, c2 = database.next_comparison(project_id, token)
         if comp_id is None:
-            comp_id, c1, c2, m = database.next_other_compared(project_id, token)
-            if m > 1:
-                comp_id, c1, c2 = database.next_other_comparison(project_id, token)
+            comp_id, c1, c2 = database.next_other_compared(project_id, token, 0)
     else:
-        o_comp_id, o_c1, o_c2, m = database.next_other_compared(project_id, token)
-        if o_comp_id is not None and m == 0:
-            comp_id, c1, c2 = o_comp_id, o_c1, o_c2
-        else:
+        comp_id, c1, c2 = database.next_other_compared(project_id, token, 0)
+        if comp_id is None:
             comp_id, c1, c2 = database.next_comparison(project_id, token)
-            if comp_id is None:
-                if m <= 1:
-                    comp_id, c1, c2 = o_comp_id, o_c1, o_c2
-                else:
-                    comp_id, c1, c2 = database.next_other_comparison(project_id, token)
     if comp_id is None:
-        return jsonify(STATUS_END)
+        comp_id, c1, c2 = database.next_other_compared(project_id, token, 1)
+        if comp_id is None:
+            comp_id, c1, c2 = database.next_other_comparison(project_id, token)
+            if comp_id is None:
+                return jsonify(STATUS_END)
 
     answers = database.get_related_answers(c1['id'], token)
     d1 = assemble_descriptions(c1['id'], answers)
