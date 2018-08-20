@@ -338,11 +338,11 @@ def developer_stats(token):
         init_driver()
     # noinspection PyBroadException
     try:
-        unanswered = _driver.session().read_transaction(query.count_comparison_nodes,
-                                                        token)
+        # unanswered = _driver.session().read_transaction(query.count_comparison_nodes,
+        #                                                token)
         answered = _driver.session().read_transaction(query.count_compared_relationships,
                                                       token)
-        return unanswered + answered, answered
+        return 25, answered
     except Exception:
         logging.exception("Failed to retrieve stats for token: " + token)
         return None, None
