@@ -31,7 +31,7 @@ def main():
     cid = add_comparison('915330ffc269eed821d652292993ff75b717a66b',
                          'b35414f93aa5caaff115791d4040271047df25b3',
                          'w@persper.org')
-    n = count_compared(developer)
+    n = count_compared(project_id, developer)
     q, c1, c2 = next_comparison(project_id, developer)
     assert q == cid
     assert c1['id'] == '915330ffc269eed821d652292993ff75b717a66b'
@@ -44,7 +44,7 @@ def main():
                reason='第二个 commit 是 disable a feature，第一个是优化体验。',
                token=developer)
     print('Answered Question #%d: %s' % (n, cid))
-    next_n = count_compared(developer)
+    next_n = count_compared(project_id, developer)
     test, _, _ = next_comparison(project_id, developer)
     assert test is None  # No more questions.
     assert next_n == n + 1  # But the next question number is there.
@@ -97,9 +97,9 @@ def main():
                           '84e9c84b6bfa6c51caaa402248bcc5b60b713668',
                           'w@persper.org')
 
-    n = count_compared(developer)
+    n = count_compared(project_id, developer)
     q, _, _ = next_comparison(project_id, developer)
-    next_n = count_compared(developer)
+    next_n = count_compared(project_id, developer)
     next_q, _, _ = next_comparison(project_id, developer)
     assert next_q == q and next_n == n
 
@@ -114,7 +114,7 @@ def main():
                token=developer)
     print('Answered Question #%d: %s' % (n, cid))
 
-    next_n = count_compared(developer)
+    next_n = count_compared(project_id, developer)
     q, _, _ = next_comparison(project_id, developer)
     assert q == cid2 and next_n == n + 1
 

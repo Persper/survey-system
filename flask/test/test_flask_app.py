@@ -29,7 +29,7 @@ def main():
     test_project_info(address, dt, project_id)
 
     stats = test_developer_stats(address, dt, project_id)
-    assert stats['total'] == 6 and stats['answered'] == 2
+    assert stats['answered'] == 2
 
     labels = test_get_labels(address, rt, project_id)
 
@@ -69,7 +69,7 @@ def main():
                            '[who knows] is more valuable than [who knows]')
 
     stats = test_developer_stats(address, dt, project_id)
-    assert stats['total'] == 6 and stats['answered'] == 6
+    assert stats['answered'] == 6
 
     # Makes the 4th - 6th reviews.
     while True:
