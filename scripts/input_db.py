@@ -95,7 +95,7 @@ def main():
 
     if not args.input:
         s, d = sum_percents()
-        print('Total number of commits:', s)
+        print('Total number of comparisons:', s)
         for i, p in enumerate(d):
             print('%dx=%.1f%%' % (i + 1, p * 100), end=', ')
         print()
