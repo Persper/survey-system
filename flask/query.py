@@ -186,11 +186,17 @@ def get_compared_relationships_unsafe(tx, commit):
     return result.records()
 
 
-def list_compared_relationships(tx, project_name):
+def list_project_compared_relationships(tx, project_name):
     result = tx.run("MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit)"
                     "-[:COMMITTED_TO]->(:Project {name: $name}) "
                     "RETURN c1 AS commit1, o AS outvalues, c2 AS commit2",
                     name=project_name)
+    return result.records()
+
+
+def list_compared_relationships(tx):
+    result = tx.run("MATCH (e:Email)-[:AUTHORS]->(c1:Commit)-[o:OUTVALUES]->(c2:Commit)-[:COMMITTED_TO]->(p:Project) "
+                    "RETURN e AS author, c1 AS commit1, c2 AS commit2, o AS relation, p AS project")
     return result.records()
 
 

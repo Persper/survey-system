@@ -372,12 +372,12 @@ def stats_compared(project_name):
         return None
 
 
-def list_compared(project_name):
+def list_project_compared(project_name):
     if not _driver:
         init_driver()
     # noinspection PyBroadException
     try:
-        counts = _driver.session().read_transaction(query.list_compared_relationships,
+        counts = _driver.session().read_transaction(query.list_project_compared_relationships,
                                                     project_name)
         if counts is None:
             return []
@@ -388,4 +388,25 @@ def list_compared(project_name):
                  'reason': c['outvalues']['reason']} for c in counts]
     except Exception:
         logging.exception("Failed to list compared commits of project: " + project_name)
+        return None
+
+
+def list_compared():
+    if not _driver:
+        init_driver()
+    # noinspection PyBroadException
+    try:
+        counts = _driver.session().read_transaction(query.list_compared_relationships)
+        if counts is None:
+            return []
+        return [{'project': c['project']['url'],
+                 'author': c['author']['email'],
+                 'commit1': c['commit1']['id'],
+                 'title1': c['commit1']['title'],
+                 'email': c['relation']['email'],
+                 'commit2': c['commit2']['id'],
+                 'title2': c['commit2']['title'],
+                 'reason': c['relation']['reason']} for c in counts]
+    except Exception:
+        logging.exception("Failed to list all compared commits!")
         return None
