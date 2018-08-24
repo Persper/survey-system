@@ -1,0 +1,8 @@
+https://github.com/antirez/redis.git
+https://github.com/RedisLabsModules/RediSearch.git
+https://github.com/RedisLabsModules/rejson.git
+https://github.com/RedisLabsModules/redis-ml.git
+https://github.com/RedisLabsModules/redis-graph.git
+https://github.com/RedisLabsModules/rebloom.git
+https://github.com/redis/redis-rb.git
+https://github.com/redis/hiredis.git
