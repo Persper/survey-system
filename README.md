@@ -92,6 +92,12 @@ This approach depends on [stats_commit.py](https://github.com/Persper/code-analy
 
 The JSON file format should follow the output of [output_commits.py](https://github.com/Persper/survey-system/blob/master/flask/test/output_commits.py).
 
+Prepare all repositories in a batch.
+```bash
+while read url; do git clone $url; done < github-urls.txt
+for d in `ls`; do git -C $d fetch; done
+```
+
 
 
 ### 3. Send out invitations
@@ -101,32 +107,36 @@ The JSON file format should follow the output of [output_commits.py](https://git
 source sendgrid.env
 
 # Test and send out emails.
-./notifier.py -f email.list --test
-./notifier.py -f email.list --send
+./db_notifier.py -f email.list --test
+./db_notifier.py -f email.list --send
 ```
 
 ## Local Test 
 
-1. Follow the first two steps of the above workflow. To populate the database, another way is to directly run (as `scan_emails.py` does internally):
+1. Start up a local Flask service:
 
 ``` bash
-./populate_db.py -d ~/repos/project -e {author email} -n 50
-```
-
-2. Start up a local Flask service:
-
-``` bash
-cd src
+cd flask
 export FLASK_APP=flask_app.py
 flask run
 ```
 
-3. (Optional) Run test scripts for a small sample database, in the following order:
+2. Run test scripts for a small sample database, in the following order:
 
 ``` bash
-cd test
+cd flask/test
 ./test_database.py
 ./test_flask_app.py -h # see the manual for more details
 ```
 
+3. Manually test another small sample database:
+
+```bash
+./flask/test/output_commits.py -f scripts/sample_commits.json
+cd scripts
+./input_db.py -d ~/repos/ -f sample_commits.json --input
+```
+Visit the front end and check with the bottom comments in [output_commits.py](https://github.com/Persper/survey-system/blob/master/flask/test/output_commits.py).
+
 4. After the front end is up locally, visit the page for test: http://localhost:8080/#/manually.
+

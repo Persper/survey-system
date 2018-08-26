@@ -171,7 +171,7 @@ def next_other_comparison(project_id, token):
     # noinspection PyBroadException
     try:
         commit1, commit2 = _driver.session().read_transaction(query.next_other_comparison_node,
-                                                                          project_id, token)
+                                                              project_id, token)
         if commit1 is None or commit2 is None:
             return None, commit1, commit2
         return '-' + compose_comparison_id(commit1['id'], commit2['id']), commit1, commit2
