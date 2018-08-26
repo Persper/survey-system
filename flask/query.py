@@ -70,24 +70,21 @@ def next_comparison_node(tx, project_id, token):
 def next_other_comparison_node(tx, project_id, token):
     """
     Selects one comparison that is intended for a different developer.
+    Run next_comparison_node first and guarantee no comparisons are intended for the caller.
     :param tx: the transaction to run this query
     :param project_id: the project to select commits from
     :param token: the credential of the caller
     :return: a selected comparison node and its two commits
     """
-    result = tx.run("MATCH (c:Comparison) "
-                    "WHERE (:Commit {id: c.commit1})-[:COMMITTED_TO]->(:Project {id: $pid})"
-                    "<-[:COMMITTED_TO]-(:Commit {id: c.commit2}) "
-                    "WITH c LIMIT 25 "
-                    "MATCH (e:Email {token: $token}) "
-                    "MATCH (c1:Commit {id: c.commit1})-[:COMMITTED_TO]->(:Project {id: $pid})"
-                    "<-[:COMMITTED_TO]-(c2:Commit {id: c.commit2}) "
-                    "WHERE NOT (:Commit {id: c.commit1})-[:OUTVALUES {email: e.email}]->(:Commit {id: c.commit2}) AND "
-                    "      NOT (:Commit {id: c.commit2})-[:OUTVALUES {email: e.email}]->(:Commit {id: c.commit1}) "
-                    "RETURN c, c1, c2 ORDER BY c.id LIMIT 1",
+    result = tx.run("MATCH (e:Email {token: $token}) "
+                    "MATCH  (c1:Commit)-[:COMMITTED_TO]->(:Project {id: $pid})<-[:COMMITTED_TO]-(c2:Commit) "
+                    "WHERE ((:Comparison {commit1: c1.id, commit2: c2.id})<--() OR "
+                    "       (:Comparison {commit1: c2.id, commit2: c1.id})<--()) AND "
+                    "      (NOT (c1)-[:OUTVALUES {email: e.email}]-(c2)) "
+                    "RETURN c1, c2 LIMIT 1",
                     pid=project_id, token=token)
     record = result.single() if result is not None else None
-    return (record['c'], record['c1'], record['c2']) if record is not None else (None, None, None)
+    return (record['c1'], record['c2']) if record is not None else (None, None)
 
 
 def delete_comparison_node(tx, comparison_id, token):
@@ -134,18 +131,15 @@ def next_other_compared_relationship(tx, project_id, token, threshold):
     :return: a selected pair of commits
     """
     result = tx.run("MATCH (e:Email {token: $token}) "
-                    "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
-                    "WHERE (NOT (c1)-[:OUTVALUES {email: e.email}]->(c2)) AND "
-                    "      (NOT (c2)-[:OUTVALUES {email: e.email}]->(c1)) AND "
-                    "      (c1)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
-                    "      (c2)-[:COMMITTED_TO]->(:Project {id: $pid}) AND "
-                    "      (:Email {email: o.email})-[:AUTHORS]->(c1) AND "
-                    "      (:Email {email: o.email})-[:AUTHORS]->(c2) "
-                    "WITH c1, c2, count(o) AS self "
-                    "MATCH (c1)-[o:OUTVALUES]->(c2) "
-                    "WITH c1, c2, self, count(o) AS n "
-                    "WHERE n - self <= $threshold "
-                    "RETURN c1, c2 ORDER BY c1.id LIMIT 1",
+                    "MATCH (:Project {id: $pid})<-[:COMMITTED_TO]-(c1:Commit)-[o:OUTVALUES]->"
+                    "(c2:Commit)-[:COMMITTED_TO]->(:Project {id: $pid}) "
+                    "WHERE (c1)<-[:AUTHORS]-(:Email {email: o.email})-[:AUTHORS]->(c2) AND "
+                    "      (NOT (c1)-[:OUTVALUES {email: e.email}]-(c2)) "
+                    "WITH c1, c2 "
+                    "OPTIONAL MATCH (c1)-[o:OUTVALUES]-(c2) "
+                    "WITH c1, c2, count(o) AS n "
+                    "WHERE n - 1 <= $threshold "
+                    "RETURN c1, c2 LIMIT 1",
                     pid=project_id, token=token, threshold=threshold)
     record = result.single() if result is not None else None
     return (record['c1'], record['c2']) if record is not None else (None, None)
@@ -157,8 +151,8 @@ def next_compared_relationship(tx, project_id, token):
                     "WHERE (c1)-[:COMMITTED_TO]->(:Project {id: $pid})<-[:COMMITTED_TO]-(c2) AND "
                     "      (NOT (c1)-[:LABELED_WITH {comparison_id: o.id}]->(:Label) OR "
                     "       NOT (c2)-[:LABELED_WITH {comparison_id: o.id}]->(:Label)) AND "
-                    "      NOT EXISTS(o.comment) "
-                    "RETURN o, c1, c2 ORDER BY o.id LIMIT 1",
+                    "      (NOT EXISTS(o.comment)) "
+                    "RETURN o, c1, c2 LIMIT 1",
                     pid=project_id, token=token)
     record = result.single() if result is not None else None
     return (record['o'], record['c1'], record['c2']) if record is not None else (None, None, None)
@@ -204,7 +198,7 @@ def count_compared_relationships(tx, project_id, token):
     result = tx.run("MATCH (e:Email {token: $token}) "
                     "MATCH (c1:Commit)-[r:OUTVALUES {email: e.email}]->(c2:Commit) "
                     "WHERE (c1)-[:COMMITTED_TO]->(:Project {id: $project})<-[:COMMITTED_TO]-(c2) "
-                    "RETURN COUNT(r)", token=token, project=project_id)
+                    "RETURN count(r)", token=token, project=project_id)
     record = result.single() if result is not None else None
     return record[0] if record is not None else None
 
@@ -247,9 +241,9 @@ def create_comment_property(tx, comparison_id, comment, token):
 def count_reviewed_relationships(tx, token):
     result = tx.run("MATCH (r:Reviewer {token: $token}) "
                     "MATCH (c1:Commit)-[o:OUTVALUES]->(c2:Commit) "
-                    "WHERE ((c1)-[:LABELED_WITH {email: r.email}]->(:Label) "
-                    "AND (c2)-[:LABELED_WITH {email: r.email}]->(:Label)) "
-                    "OR EXISTS(o.comment)"
+                    "WHERE ((c1)-[:LABELED_WITH {email: r.email}]->(:Label) AND "
+                    "       (c2)-[:LABELED_WITH {email: r.email}]->(:Label)) OR "
+                    "      EXISTS(o.comment)"
                     "RETURN count(o.id)", token=token)
     record = result.single() if result is not None else None
     return record[0] if record is not None else None
@@ -263,8 +257,8 @@ def list_email_project(tx):
 
 def list_compared_relationship_counts(tx, project_name):
     result = tx.run("MATCH (e:Email) WITH e "
-                    "MATCH ()-[o:OUTVALUES {email: e.email}]->"
-                    "()-[:COMMITTED_TO]->(Project {name: $name}) "
+                    "MATCH (Project {name: $name})<-[:COMMITTED_TO]-(:Commit)-[o:OUTVALUES {email: e.email}]->"
+                    "(:Commit)-[:COMMITTED_TO]->(Project {name: $name}) "
                     "RETURN e.email AS email, count(o) AS count",
                     name=project_name)
     return result.records()
