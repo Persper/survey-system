@@ -11,6 +11,7 @@ def main():
     args = parser.parse_args()
 
     selected = dict()
+
     selected['vue'] = dict()
 
     selected['vue']['yyx990803@gmail.com'] = []
@@ -33,29 +34,44 @@ def main():
     selected['vue']['805037171@163.com'].append(['049f3171a9d2e97f62c209a4b78a71ec9dae810f',
                                                  '3a5432a9e3f470ebafcef905281b830537897037'])
 
+    selected['vue']['kawakazu80@gmail.com'] = []
+    selected['vue']['kawakazu80@gmail.com'].append(['9478fde8c92d225661dcb4c949d0035284600fff',
+                                                   'd80eff8eb61e48ac184536a159a0e96c4613e7d6'])
+
+    selected['jquery'] = dict()
+
+    selected['jquery']['dave.methvin@gmail.com'] = []
+    selected['jquery']['dave.methvin@gmail.com'].append(['67fa2eab6ef323b1d894e9e7f054c6e8c844d304',
+                                                         '4bf1a09522955eb52de1fafb4ee1ecc5982b7a3e'])
+
     with open(args.file, 'w') as f:
         json.dump(selected, f)
 
 
-# In manual test, expect the following order if the first commit is always chosen:
-# 1. yyx990803@gmail.com (#1-self): 0e53066 vs. 3d36a44
-# 2. yyx990803@gmail.com (#2-self): 0e53066 (filled) vs. 48acf71
-# 3. yyx990803@gmail.com (#3-self): 21112ec vs. 48acf71 (filled)
+# In manual test, expect the following order (* is chosen):
+# 1. kawakazu80@gmail.com (#1-self): 9478fde* vs. d80eff8
+# 2. kawakazu80@gmail.com (#1-other comparison): d8d4ca6 vs. 049f317*
 # [Quit]
-# 4. 805037171@163.com (#1-self): 049f317 vs. 3a5432a
-# 5. 805037171@163.com (#2-other compared): 0e53066 vs. 3d36a44
-# 6. 805037171@163.com (#3-self): 049f317 (filled) vs. d8d4ca6
-# 7. 805037171@163.com (#4-other compared): 0e53066 (filled) vs. 48acf71
-# 8. 805037171@163.com (#5-self): 3a5432a (filled) vs. d8d4ca6 (filled)
-# 9. 805037171@163.com (#6-other compared): 21112ec vs. 48acf71 (filled)
-# 10. 805037171@163.com (#7-other comparison): 21112ec (filled) vs. 5a255d9
-# 11. 805037171@163.com (#8-other comparison): 3d36a44 (filled) vs. 5a255d9 (filled)
+# 3. yyx990803@gmail.com (#1-self): 0e53066* vs. 3d36a44
+# 4  yyx990803@gmail.com (#2-other compared-0): 9478fde vs. d80eff8*
+# 5. yyx990803@gmail.com (#3-self): 0e53066* (filled) vs. 48acf71
+# 6. yyx990803@gmail.com (#4-self): 21112ec vs. 48acf71* (filled)
+# [Quit]
+# 7. 805037171@163.com (#1-self): 049f317 vs. 3a5432a*
+# 8. 805037171@163.com (#2-other compared-0): 0e53066* vs. 48acf71
+# 9. 805037171@163.com (#3-self): 049f317* (filled) vs. d8d4ca6
+# 10. 805037171@163.com (#4-other compared-0): 0e53066 (filled) vs. 3d36a44*
+# 11. 805037171@163.com (#5-self): 3a5432a* (filled) vs. d8d4ca6 (filled)
+# 12. 805037171@163.com (#6-other compared-0): 48acf71* (filled) vs. 21112ec
+# 10. 805037171@163.com (#7-other compared-1): 9478fde* vs. d80eff8
+# 11 805037171@163.com (#8-other comparison): 5a255d9 vs. 21112ec* (filled)
+# 12. 805037171@163.com (#9-other comparison): 3d36a44* (filled) vs. 5a255d9 (filled)
 # [Complete]
-# 12. yyx990803@gmail.com (#4-other compared): 049f317 vs. d8d4ca6
-# 13. yyx990803@gmail.com (#5-self): 21112ec (filled) vs. 5a255d9
-# 14. yyx990803@gmail.com (#6-other compared): 049f317 (filled) vs. 3a5432a
-# 15. yyx990803@gmail.com (#7-self): 3d36a44 (filled) vs. 5a255d9 (filled)
-# 16. yyx990803@gmail.com (#8-other compared): 3a5432a (filled) vs. d8d4ca6 (filled)
+# 13. yyx990803@gmail.com (#5-self): 21112ec (filled) vs. 5a255d9*
+# 14. yyx990803@gmail.com (#6-other compared-0): 3a5432a* vs. d8d4ca6
+# 15. yyx990803@gmail.com (#7-self): 3d36a44 (filled) vs. 5a255d9* (filled)
+# 16. yyx990803@gmail.com (#8-other compared-0): 3a5432a* (filled) vs. 049f317
+# 17. yyx990803@gmail.com (#9-other compared-1): 049f317 (filled) vs. d8d4ca6* (filled)
 # [Complete]
 
 
