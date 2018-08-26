@@ -410,3 +410,16 @@ def list_compared():
     except Exception:
         logging.exception("Failed to list all compared commits!")
         return None
+
+
+def create_indexes():
+    if not _driver:
+        init_driver()
+    # noinspection PyBroadException
+    try:
+        _driver.session().run("CREATE INDEX ON :Email(token)")
+        _driver.session().run("CREATE INDEX ON :Commit(id)")
+        _driver.session().run("CREATE INDEX ON :Project(id)")
+        _driver.session().run("CREATE INDEX ON :Comparison(commit1, commit2)")
+    except Exception:
+        logging.exception("Failed to create indexes!")

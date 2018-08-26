@@ -93,7 +93,9 @@ def main():
                         database.add_comparison(c1.hexsha, c2.hexsha, email)
                 print(project, email, json.dumps(list(names)), compose_url(token, project_id), sep='\t')
 
-    if not args.input:
+    if args.input:
+        database.create_indexes()
+    else:
         s, d = sum_percents()
         print('Total number of comparisons:', s)
         for i, p in enumerate(d):
