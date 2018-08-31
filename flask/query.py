@@ -255,10 +255,17 @@ def list_email_project(tx):
     return result.records()
 
 
-def list_compared_relationship_counts(tx, project_name):
+def count_project_compared_relationships(tx, project_name):
     result = tx.run("MATCH (e:Email) WITH e "
                     "MATCH (Project {name: $name})<-[:COMMITTED_TO]-(:Commit)-[o:OUTVALUES {email: e.email}]->"
                     "(:Commit)-[:COMMITTED_TO]->(Project {name: $name}) "
-                    "RETURN e.email AS email, count(o) AS count",
+                    "RETURN e.email AS email, count(o) AS count ORDER BY e.email",
                     name=project_name)
+    return result.records()
+
+
+def count_compared_relationships_by_email(tx):
+    result = tx.run("MATCH (e:Email) WITH e "
+                    "MATCH (:Commit)-[o:OUTVALUES {email: e.email}]->(:Commit) "
+                    "RETURN e.email AS email, count(o) AS count ORDER BY e.email")
     return result.records()

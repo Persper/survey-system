@@ -364,11 +364,23 @@ def stats_compared(project_name):
         init_driver()
     # noinspection PyBroadException
     try:
-        counts = _driver.session().read_transaction(query.list_compared_relationship_counts,
+        counts = _driver.session().read_transaction(query.count_project_compared_relationships,
                                                     project_name)
         return [(c['email'], c['count']) for c in counts]
     except Exception:
-        logging.exception("Failed to count commits compared by developers for project: " + project_name)
+        logging.exception("Failed to count compared commit pairs by email for project: " + project_name)
+        return None
+
+
+def count_compared_by_email():
+    if not _driver:
+        init_driver()
+    # noinspection PyBroadException
+    try:
+        counts = _driver.session().read_transaction(query.count_compared_relationships_by_email)
+        return [(c['email'], c['count']) for c in counts]
+    except Exception:
+        logging.exception("Failed to count compared commit pairs by email!")
         return None
 
 
